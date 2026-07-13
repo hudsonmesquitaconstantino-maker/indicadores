@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Indicadores">
 <meta name="theme-color" content="#0D1220">
-<link rel="apple-touch-icon" href="./1B75639A-2443-4BCA-823E-B6808B815AD1.png">
+<link rel="apple-touch-icon" href="./icon.png">
 <title>Indicadores &amp; Simulador — Guimas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -266,7 +266,7 @@ footer{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6}
 <section class="panel" id="tab-ipca">
   <div class="tabinfo">Correção monetária
     <button class="info" type="button" aria-label="O que esta aba faz">!</button>
-    <div class="explain">Atualiza um valor antigo para o valor de hoje usando a série histórica oficial, mês a mês. Use IPCA para custo de vida em geral, e IGP-M para aluguel, terreno e contratos imobiliários — é assim que a parcela do terreno é reajustada todo ano.</div>
+    <div class="explain">Atualiza um valor antigo para o de hoje usando a série oficial, mês a mês. IPCA para custo de vida em geral; IGP-M para aluguel, terreno e contratos imobiliários. Se seu contrato for do tipo "índice + juros" (ex.: IGP-M + 12% a.a., comum em terreno parcelado), preencha o campo de juros que o app entrega o valor final da parcela. Lembre: reajuste anual usa exatamente 12 meses de índice.</div>
   </div>
   <div class="formcard">
     <div class="field">
@@ -278,7 +278,7 @@ footer{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6}
     </div>
     <div class="field">
       <label for="ipcaValor">Valor (R$)</label>
-      <input id="ipcaValor" type="text" inputmode="decimal" value="1.000,00">
+      <input id="ipcaValor" type="text" inputmode="decimal" value="2.400,00">
     </div>
     <div class="row2">
       <div class="field">
@@ -289,6 +289,12 @@ footer{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6}
         <label for="ipcaAte">Até (mês/ano)</label>
         <input id="ipcaAte" type="month">
       </div>
+    </div>
+    <div class="hint" style="margin:-6px 0 14px">Reajuste anual de contrato usa exatamente 12 meses: do mês seguinte ao último reajuste até o mês do aniversário (ex.: jul/2025 → jun/2026).</div>
+    <div class="field">
+      <label for="ipcaJuros">Juros do contrato (% ao ano) — opcional</label>
+      <input id="ipcaJuros" type="text" inputmode="decimal" value="0">
+      <div class="hint">Para contratos do tipo "IGP-M + 12% a.a.", comuns em terreno parcelado direto com loteadora: o índice repõe a inflação e esses juros são a remuneração do parcelamento. Deixe 0 se seu contrato só usa o índice.</div>
     </div>
     <button class="btn" id="ipcaBtn" type="button">Corrigir valor</button>
     <div class="errbox" id="ipcaErr"></div>
@@ -342,6 +348,11 @@ footer{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6}
           <option value="aa">% ao ano</option>
         </select>
       </div>
+    </div>
+    <div class="field">
+      <label for="finCustos">Custos embutidos no financiamento (R$) — opcional</label>
+      <input id="finCustos" type="text" inputmode="decimal" value="0,00">
+      <div class="hint">IOF, tarifa de cadastro (TAC) e seguros que o banco soma ao valor financiado — é assim que aparece no contrato real. Deixe 0 para conta limpa.</div>
     </div>
     <div class="field">
       <label for="finMeses">Prazo (meses)</label>
@@ -465,6 +476,10 @@ function financiamentoSAC(financiado, i, n){
 /* Valor em poder de compra de hoje: deflaciona pela inflação anual projetada. */
 function valorReal(nominal, inflacaoAA, meses){
   return nominal / Math.pow(1 + inflacaoAA/100, meses/12);
+}
+/* Fator de juros anuais aplicados proporcionalmente ao nº de meses (ex.: 12% a.a. em 12m = ×1,12). */
+function fatorJurosAA(jurosAA, meses){
+  return Math.pow(1 + jurosAA/100, meses/12);
 }
 /* ===== MATH-END ===== */
 
@@ -642,17 +657,34 @@ document.getElementById("ipcaBtn").addEventListener("click", async ()=>{
     if(!r.ok) throw new Error("HTTP "+r.status);
     const serie = await r.json();
     if(!serie.length) throw new Error("Sem dados no período.");
+    const juros = parseBR(document.getElementById("ipcaJuros").value) || 0;
     const fator = compostoSerie(serie.map(p=>parseFloat(p.valor)));
     const corrigido = valor * fator;
     const acum = (fator-1)*100;
     const ultimo = serie[serie.length-1].data;
-    res.innerHTML =
+    const fJuros = fatorJurosAA(juros, serie.length);
+    const final_ = corrigido * fJuros;
+
+    let html =
       rline("Índice", nomeIdx) +
       rline("Meses computados", String(serie.length)+" (até "+ultimo+")") +
       rline(nomeIdx+" acumulado", fmtPct(acum), acum>=0?"neg":"pos") +
       rline("Valor original", fmtBRL(valor)) +
-      rline("Valor corrigido", fmtBRL(corrigido), "big") +
-      rline("Diferença", fmtBRL(corrigido-valor));
+      rline("Corrigido pelo índice", fmtBRL(corrigido), juros>0?"":"big");
+    if(juros>0){
+      html += rline("Juros do contrato ("+fmtNum(juros,2)+"% a.a., proporcional a "+serie.length+"m)", "× "+fmtNum(fJuros,4)) +
+              rline("Valor final (índice + juros)", fmtBRL(final_), "big");
+      if(acum<0){
+        html += rline("Se o contrato trava índice negativo em zero", fmtBRL(valor * fJuros));
+      }
+    }else{
+      html += rline("Diferença", fmtBRL(corrigido-valor));
+    }
+    let notas = [];
+    if(serie.length!==12) notas.push("Atenção: o período tem "+serie.length+" meses — reajuste anual de contrato usa exatamente 12.");
+    if(acum<0) notas.push("Índice negativo no período: muitos contratos têm cláusula que trava a correção em zero (o valor não reduz) — confira o seu.");
+    if(notas.length) html += `<div class="note">${notas.join(" ")}</div>`;
+    res.innerHTML = html;
     res.classList.add("show");
   }catch(e){
     err.textContent = "A correção precisa buscar a série histórica completa do "+nomeIdx+" no Banco Central, então exige internet. No preview do app do Claude a conexão é bloqueada — abra no Safari ou no GitHub Pages e funcionará.";
@@ -672,6 +704,7 @@ finTipo.addEventListener("change", ()=>{
     document.getElementById("finTaxa").value = "1,49";
     document.getElementById("finUnidade").value = "am";
     document.getElementById("finMeses").value = "48";
+    document.getElementById("finCustos").value = "0,00";
   }else{
     document.getElementById("finSistema").value = "sac";
     document.getElementById("finValor").value = "300.000,00";
@@ -679,6 +712,7 @@ finTipo.addEventListener("change", ()=>{
     document.getElementById("finTaxa").value = "11,00";
     document.getElementById("finUnidade").value = "aa";
     document.getElementById("finMeses").value = "360";
+    document.getElementById("finCustos").value = "0,00";
   }
 });
 
@@ -698,11 +732,13 @@ document.getElementById("finBtn").addEventListener("click", ()=>{
   if(!(n>0)){ err.textContent="Informe o prazo em meses."; err.classList.add("show"); return; }
 
   const i = unidade==="aa" ? aaToAM(taxa) : taxa/100;
-  const financiado = valor - entrada;
+  const custos = parseBR(document.getElementById("finCustos").value) || 0;
+  const financiado = valor - entrada + custos;
   const taxaAAeq = (Math.pow(1+i,12)-1)*100;
 
   let html =
-    rline("Valor financiado", fmtBRL(financiado)) +
+    rline("Valor financiado"+(custos>0?" (bem − entrada + custos)":""), fmtBRL(financiado)) +
+    (custos>0 ? rline("Custos embutidos (IOF/tarifas/seguros)", fmtBRL(custos)) : "") +
     rline("Taxa", fmtPct(i*100,2)+" a.m. = "+fmtPct(taxaAAeq,2)+" a.a.") +
     rline("Prazo", n+" meses");
 
