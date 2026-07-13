@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Indicadores">
+<meta name="theme-color" content="#0D1220">
+<title>Indicadores &amp; Simulador — Guimas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D1220; --surface:#151C2E; --surface2:#1B2438; --border:#232D45;
+  --text:#E8ECF4; --muted:#8A94AC; --amber:#F5B841; --amber-dim:#8f6d26;
+  --up:#3DDC97; --down:#FF6B6B; --focus:#5B8DEF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  min-height:100vh; padding-bottom:48px;
+  padding-top:env(safe-area-inset-top);
+}
+.wrap{max-width:680px;margin:0 auto;padding:0 14px}
+
+/* ---------- Header ---------- */
+header{padding:20px 0 14px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600}
+h1{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+.statusline{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--muted)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+.dot.ok{background:var(--up);box-shadow:0 0 8px rgba(61,220,151,.6)}
+.dot.err{background:var(--down)}
+.dot.warn{background:var(--amber);box-shadow:0 0 8px rgba(245,184,65,.5)}
+.card.fallback .value{color:var(--amber-dim)}
+#refreshBtn{
+  margin-left:auto;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font:600 12px 'IBM Plex Sans',sans-serif;padding:7px 12px;border-radius:8px;cursor:pointer;
+}
+#refreshBtn:active{transform:scale(.97)}
+#refreshBtn:disabled{opacity:.5}
+
+/* ---------- Botão "!" explicativo ---------- */
+.info{
+  position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  font:700 11px 'IBM Plex Mono',monospace;line-height:16px;text-align:center;cursor:pointer;padding:0;
+}
+.info:active,.info.open{color:var(--amber);border-color:var(--amber-dim)}
+.info:focus-visible{outline:2px solid var(--focus)}
+.explain{display:none;font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px;
+  border-top:1px dashed var(--border);padding-top:7px}
+.explain.show{display:block}
+
+/* ---------- Grid de indicadores ---------- */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:12px 34px 12px 14px;position:relative;overflow:hidden;
+}
+.card .label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.card .value{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:21px;color:var(--amber);margin-top:6px;line-height:1.1;word-break:break-word}
+.card .sub{font-size:11px;color:var(--muted);margin-top:4px}
+.card.loading .value{color:var(--amber-dim)}
+.card.error .value{color:var(--down);font-size:13px}
+@keyframes scan{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.card.loading::after{
+  content:'';position:absolute;inset:auto 0 0 0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--amber),transparent);
+  animation:scan 1.1s linear infinite;
+}
+@media (prefers-reduced-motion:reduce){.card.loading::after{animation:none}}
+
+/* ---------- Abas ---------- */
+.tabs{display:flex;gap:4px;margin:22px 0 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px}
+.tabs button{
+  flex:1;background:none;border:0;color:var(--muted);font:600 12.5px 'IBM Plex Sans',sans-serif;
+  padding:9px 2px;border-radius:7px;cursor:pointer;
+}
+.tabs button.active{background:var(--surface2);color:var(--amber)}
+.panel{display:none}
+.panel.active{display:block}
+
+/* ---------- Banner explicativo da aba ---------- */
+.tabinfo{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:10px 34px 10px 12px;margin-bottom:12px;font-size:12.5px;color:var(--muted);font-weight:600}
+.tabinfo .explain{margin-top:0;border-top:0;padding-top:6px;font-weight:400}
+
+/* ---------- Formulários ---------- */
+.formcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input,.field select{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font:500 16px 'IBM Plex Mono',monospace;padding:11px 12px;
+  appearance:none;-webkit-appearance:none;
+}
+.field input:focus,.field select:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}
+.btn{
+  width:100%;background:var(--amber);color:#1a1405;border:0;border-radius:9px;
+  font:700 15px 'IBM Plex Sans',sans-serif;padding:13px;cursor:pointer;margin-top:4px;
+}
+.btn:active{transform:scale(.99)}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- Resultados ---------- */
+.result{margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;display:none}
+.result.show{display:block}
+.rline{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--border);gap:10px}
+.rline:last-child{border-bottom:0}
+.rline .k{font-size:13px;color:var(--muted)}
+.rline .v{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;text-align:right}
+.rline .v.big{font-size:20px;color:var(--amber)}
+.rline .v.pos{color:var(--up)}
+.rline .v.neg{color:var(--down)}
+.note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+
+/* ---------- Tabela comparador ---------- */
+.ctable{width:100%;border-collapse:collapse;margin-top:4px}
+.ctable th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:8px 6px;border-bottom:1px solid var(--border)}
+.ctable td{padding:10px 6px;border-bottom:1px solid var(--border);font-size:13px}
+.ctable td.num{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;white-space:nowrap}
+.ctable tr.best td{color:var(--amber)}
+.ctable tr.best td:first-child::before{content:'▸ ';color:var(--amber)}
+.ctable tr:last-child td{border-bottom:0}
+
+.errbox{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.35);color:var(--down);border-radius:9px;padding:10px 12px;font-size:13px;margin-top:12px;display:none}
+.errbox.show{display:block}
+
+footer{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Banco Central · Dados oficiais ao vivo</div>
+  <h1>Indicadores &amp; Simulador</h1>
+  <div class="statusline">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">Carregando dados…</span>
+    <button id="refreshBtn" type="button">Atualizar</button>
+  </div>
+</header>
+
+<div class="tabinfo" id="offlineNote" style="display:none">⚠ Sem conexão com o Banco Central
+  <div class="explain show" style="display:block">Mostrando valores de referência de 12/07/2026 — todas as calculadoras funcionam normalmente com eles. Atenção: dentro do preview do app do Claude a internet é bloqueada de propósito. Hospedado no GitHub Pages ou aberto no Safari, os valores atualizam sozinhos toda vez que você abre.</div>
+</div>
+
+<section class="grid" id="grid">
+  <div class="card loading" id="c-selic">
+    <div class="label">Selic (meta)</div><div class="value">—</div><div class="sub">% ao ano</div>
+    <button class="info" type="button" aria-label="O que é Selic">!</button>
+    <div class="explain">A taxa básica de juros do Brasil, definida pelo Banco Central a cada 45 dias. Quando a Selic sobe, empréstimos ficam mais caros e investimentos de renda fixa rendem mais.</div>
+  </div>
+  <div class="card loading" id="c-cdi">
+    <div class="label">CDI</div><div class="value">—</div><div class="sub">% ao ano</div>
+    <button class="info" type="button" aria-label="O que é CDI">!</button>
+    <div class="explain">A taxa que os bancos usam para emprestar dinheiro entre si. Fica sempre coladinha na Selic. É a referência de quase todo investimento: um "CDB 100% do CDI" rende exatamente essa taxa.</div>
+  </div>
+  <div class="card loading" id="c-ipca12">
+    <div class="label">IPCA 12 meses</div><div class="value">—</div><div class="sub">inflação acumulada</div>
+    <button class="info" type="button" aria-label="O que é IPCA">!</button>
+    <div class="explain">A inflação oficial do Brasil (IBGE): quanto o custo de vida subiu nos últimos 12 meses. Se seu dinheiro rende menos que o IPCA, você está perdendo poder de compra.</div>
+  </div>
+  <div class="card loading" id="c-ipcam">
+    <div class="label">IPCA no mês</div><div class="value">—</div><div class="sub">—</div>
+    <button class="info" type="button" aria-label="O que é IPCA mensal">!</button>
+    <div class="explain">A inflação do último mês divulgado pelo IBGE. Sai sempre com cerca de 10 dias de atraso — não existe IPCA "em tempo real", este é o valor oficial mais recente que existe.</div>
+  </div>
+  <div class="card loading" id="c-igpm12">
+    <div class="label">IGP-M 12 meses</div><div class="value">—</div><div class="sub">acumulado</div>
+    <button class="info" type="button" aria-label="O que é IGP-M">!</button>
+    <div class="explain">O índice da FGV conhecido como "inflação do aluguel". É o mais usado para reajustar aluguéis, parcelas de terreno e contratos imobiliários — como o terreno que ajusta todo ano. Pode ser bem diferente do IPCA (e até negativo).</div>
+  </div>
+  <div class="card loading" id="c-igpmm">
+    <div class="label">IGP-M no mês</div><div class="value">—</div><div class="sub">—</div>
+    <button class="info" type="button" aria-label="O que é IGP-M mensal">!</button>
+    <div class="explain">A variação do IGP-M no último mês divulgado pela FGV. Ele oscila muito mais que o IPCA porque inclui preços no atacado e dólar.</div>
+  </div>
+  <div class="card loading" id="c-usd">
+    <div class="label">Dólar</div><div class="value">—</div><div class="sub">—</div>
+    <button class="info" type="button" aria-label="O que é a cotação do dólar">!</button>
+    <div class="explain">Cotação comercial de venda (PTAX do Banco Central), fechada em dia útil. É a referência oficial — casas de câmbio e cartões cobram sempre um pouco mais que isso.</div>
+  </div>
+  <div class="card loading" id="c-eur">
+    <div class="label">Euro</div><div class="value">—</div><div class="sub">—</div>
+    <button class="info" type="button" aria-label="O que é a cotação do euro">!</button>
+    <div class="explain">Cotação comercial de venda do euro, divulgada pelo Banco Central em dia útil.</div>
+  </div>
+  <div class="card loading" id="c-poup">
+    <div class="label">Poupança</div><div class="value">—</div><div class="sub">% ao mês (regra oficial)</div>
+    <button class="info" type="button" aria-label="Como a poupança rende">!</button>
+    <div class="explain">Calculada pela regra oficial: com Selic acima de 8,5% ao ano, a poupança paga 0,5% ao mês + TR. Com Selic abaixo disso, paga 70% da Selic + TR. É isenta de IR, mas quase sempre perde para CDB e Tesouro.</div>
+  </div>
+  <div class="card loading" id="c-tr">
+    <div class="label">TR</div><div class="value">—</div><div class="sub">% ao mês</div>
+    <button class="info" type="button" aria-label="O que é TR">!</button>
+    <div class="explain">Taxa Referencial. Entra na conta da poupança e corrige o saldo do FGTS e muitos financiamentos de imóvel (SFH). Costuma ser próxima de zero.</div>
+  </div>
+</section>
+
+<nav class="tabs" role="tablist">
+  <button class="active" data-tab="sim" type="button">Investir</button>
+  <button data-tab="ipca" type="button">Corrigir</button>
+  <button data-tab="fin" type="button">Financiar</button>
+  <button data-tab="comp" type="button">Comparar</button>
+</nav>
+
+<!-- ============ ABA 1: INVESTIR ============ -->
+<section class="panel active" id="tab-sim">
+  <div class="tabinfo">Simulador de investimento
+    <button class="info" type="button" aria-label="O que esta aba faz">!</button>
+    <div class="explain">Mostra quanto seu dinheiro vira ao final do prazo, usando as taxas reais de hoje. O Imposto de Renda já é descontado automaticamente onde se aplica (quanto mais tempo investido, menor a alíquota: de 22,5% até 15% sobre o lucro).</div>
+  </div>
+  <div class="formcard">
+    <div class="field">
+      <label for="simTipo">Investimento</label>
+      <select id="simTipo">
+        <option value="cdb">CDB / RDB (% do CDI, com IR)</option>
+        <option value="lci">LCI / LCA (% do CDI, isento de IR)</option>
+        <option value="tesouro">Tesouro Selic (com IR + taxa B3)</option>
+        <option value="poupanca">Poupança (isenta)</option>
+      </select>
+    </div>
+    <div class="field" id="fieldPct">
+      <label for="simPct">Percentual do CDI</label>
+      <input id="simPct" type="text" inputmode="decimal" value="100">
+      <div class="hint">CDB de banco médio costuma pagar 100–115. LCI/LCA costuma pagar 85–95.</div>
+    </div>
+    <div class="field">
+      <label for="simModo">Modo</label>
+      <select id="simModo">
+        <option value="solo">Valor único (sem aportes) — só ver quanto rende</option>
+        <option value="aporte">Com aportes mensais</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="simValor">Valor inicial (R$)</label>
+        <input id="simValor" type="text" inputmode="decimal" value="150.000,00">
+      </div>
+      <div class="field" id="fieldAporte" style="display:none">
+        <label for="simAporte">Aporte mensal (R$)</label>
+        <input id="simAporte" type="text" inputmode="decimal" value="500,00">
+      </div>
+    </div>
+    <div class="field">
+      <label for="simMeses">Prazo (meses)</label>
+      <input id="simMeses" type="text" inputmode="numeric" value="12">
+    </div>
+    <button class="btn" id="simBtn" type="button">Calcular</button>
+    <div class="errbox" id="simErr"></div>
+    <div class="result" id="simRes"></div>
+  </div>
+</section>
+
+<!-- ============ ABA 2: CORRIGIR ============ -->
+<section class="panel" id="tab-ipca">
+  <div class="tabinfo">Correção monetária
+    <button class="info" type="button" aria-label="O que esta aba faz">!</button>
+    <div class="explain">Atualiza um valor antigo para o valor de hoje usando a série histórica oficial, mês a mês. Use IPCA para custo de vida em geral, e IGP-M para aluguel, terreno e contratos imobiliários — é assim que a parcela do terreno é reajustada todo ano.</div>
+  </div>
+  <div class="formcard">
+    <div class="field">
+      <label for="ipcaIndice">Índice</label>
+      <select id="ipcaIndice">
+        <option value="433">IPCA (inflação oficial)</option>
+        <option value="189">IGP-M (aluguel / contratos / terreno)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="ipcaValor">Valor (R$)</label>
+      <input id="ipcaValor" type="text" inputmode="decimal" value="1.000,00">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="ipcaDe">De (mês/ano)</label>
+        <input id="ipcaDe" type="month">
+      </div>
+      <div class="field">
+        <label for="ipcaAte">Até (mês/ano)</label>
+        <input id="ipcaAte" type="month">
+      </div>
+    </div>
+    <button class="btn" id="ipcaBtn" type="button">Corrigir valor</button>
+    <div class="errbox" id="ipcaErr"></div>
+    <div class="result" id="ipcaRes"></div>
+    <div class="note">Séries oficiais: IPCA (IBGE) e IGP-M (FGV), via Banco Central. O último mês disponível é sempre o mais recente já divulgado.</div>
+  </div>
+</section>
+
+<!-- ============ ABA 3: FINANCIAR ============ -->
+<section class="panel" id="tab-fin">
+  <div class="tabinfo">Simulador de financiamento
+    <button class="info" type="button" aria-label="O que esta aba faz">!</button>
+    <div class="explain">Calcula a parcela e o custo total de um financiamento de carro ou imóvel. PRICE = parcelas fixas do início ao fim (padrão de carro). SAC = parcelas que começam maiores e vão caindo (padrão de imóvel; paga menos juros no total). A conta é a mesma que o banco faz — mas o contrato real ainda soma IOF, seguros e tarifas por cima.</div>
+  </div>
+  <div class="formcard">
+    <div class="row2">
+      <div class="field">
+        <label for="finTipo">Tipo</label>
+        <select id="finTipo">
+          <option value="carro">Carro</option>
+          <option value="imovel">Imóvel</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="finSistema">Sistema</label>
+        <select id="finSistema">
+          <option value="price">PRICE (parcela fixa)</option>
+          <option value="sac">SAC (parcela decrescente)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="finValor">Valor do bem (R$)</label>
+        <input id="finValor" type="text" inputmode="decimal" value="60.000,00">
+      </div>
+      <div class="field">
+        <label for="finEntrada">Entrada (R$)</label>
+        <input id="finEntrada" type="text" inputmode="decimal" value="12.000,00">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="finTaxa">Taxa de juros</label>
+        <input id="finTaxa" type="text" inputmode="decimal" value="1,49">
+      </div>
+      <div class="field">
+        <label for="finUnidade">Unidade da taxa</label>
+        <select id="finUnidade">
+          <option value="am">% ao mês</option>
+          <option value="aa">% ao ano</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="finMeses">Prazo (meses)</label>
+      <input id="finMeses" type="text" inputmode="numeric" value="48">
+      <div class="hint">Carro: 24 a 60 meses é o comum. Imóvel: até 360 ou 420 meses.</div>
+    </div>
+    <button class="btn" id="finBtn" type="button">Calcular financiamento</button>
+    <div class="errbox" id="finErr"></div>
+    <div class="result" id="finRes"></div>
+  </div>
+</section>
+
+<!-- ============ ABA 4: COMPARAR ============ -->
+<section class="panel" id="tab-comp">
+  <div class="tabinfo">Comparador de investimentos
+    <button class="info" type="button" aria-label="O que esta aba faz">!</button>
+    <div class="explain">Pega o mesmo dinheiro e o mesmo prazo e mostra quanto sobraria no bolso em cada opção, já com imposto descontado. A melhor aparece destacada no topo.</div>
+  </div>
+  <div class="formcard">
+    <div class="row2">
+      <div class="field">
+        <label for="compValor">Valor inicial (R$)</label>
+        <input id="compValor" type="text" inputmode="decimal" value="10.000,00">
+      </div>
+      <div class="field">
+        <label for="compAporte">Aporte mensal (R$)</label>
+        <input id="compAporte" type="text" inputmode="decimal" value="500,00">
+      </div>
+    </div>
+    <div class="field">
+      <label for="compMeses">Prazo (meses)</label>
+      <input id="compMeses" type="text" inputmode="numeric" value="12">
+    </div>
+    <button class="btn" id="compBtn" type="button">Comparar (valores líquidos)</button>
+    <div class="errbox" id="compErr"></div>
+    <div class="result" id="compRes"></div>
+  </div>
+</section>
+
+<footer>
+  Fonte: API pública SGS — Banco Central do Brasil (Selic, CDI, IPCA/IBGE, IGP-M/FGV, câmbio, TR). Simulações usam as taxas de hoje projetadas para o período; taxas reais variam. Financiamentos: cálculo de juros compostos exato (PRICE/SAC), sem IOF, seguros e tarifas do contrato. Ferramenta de estimativa — não é recomendação de investimento.
+</footer>
+
+</div>
+
+<script>
+"use strict";
+/* ================= Séries do Banco Central (API SGS) ================= */
+const SGS = {
+  selic: 432,     // Meta Selic % a.a.
+  cdi: 4389,      // CDI anualizado % a.a. (base 252)
+  ipca12: 13522,  // IPCA acumulado 12 meses %
+  ipcam: 433,     // IPCA variação mensal %
+  igpm: 189,      // IGP-M variação mensal % (FGV)
+  usd: 1,         // Dólar comercial venda R$
+  eur: 21619,     // Euro venda R$
+  tr: 226         // TR % a.m.
+};
+const state = { selic:null, cdi:null, ipca12:null, ipcam:null, igpmM:null, igpm12:null,
+                usd:null, eur:null, tr:null, poupancaAM:null, lastUpdate:null };
+
+function sgsLastUrl(code, n){ return `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code}/dados/ultimos/${n}?formato=json`; }
+
+async function fetchSGS(code, n){
+  const r = await fetch(sgsLastUrl(code, n), {cache:"no-store"});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const j = await r.json();
+  if(!j.length) throw new Error("vazio");
+  return j; // [{data:"dd/mm/aaaa", valor:"x.xx"}, ...]
+}
+
+/* ===== MATH-BEGIN (funções puras — testadas automaticamente) ===== */
+function parseBR(s){
+  if(s==null) return NaN;
+  s = String(s).trim(); if(!s) return NaN;
+  s = s.replace(/R\$\s?/g,"").replace(/\./g,"").replace(",",".");
+  return parseFloat(s);
+}
+function aaToAM(aa){ return Math.pow(1+aa/100,1/12)-1; }              // % a.a. -> fração a.m.
+function calcPoupancaAM(selicAA, trAM){                                // regra oficial da poupança, % a.m.
+  if(selicAA > 8.5) return 0.5 + trAM;
+  return (Math.pow(1 + (0.7*selicAA)/100, 1/12) - 1)*100 + trAM;
+}
+function irAliquota(dias){                                             // IR regressivo renda fixa
+  if(dias<=180) return 0.225;
+  if(dias<=360) return 0.20;
+  if(dias<=720) return 0.175;
+  return 0.15;
+}
+function compostoSerie(valoresPct){                                    // acumula variações mensais em %
+  let f = 1;
+  for(const v of valoresPct) f *= (1 + v/100);
+  return f;                                                            // fator (ex.: 1.045 = +4,5%)
+}
+/* Investimento: capitalização mensal, aporte ao fim de cada mês (n aportes).
+   Equivalente à fórmula fechada FV = P(1+i)^n + A*(((1+i)^n - 1)/i). */
+function simularCore(i, inicial, aporte, meses, isentoIR){
+  let saldo = inicial, investido = inicial;
+  for(let m=1;m<=meses;m++){ saldo = saldo*(1+i) + aporte; investido += aporte; }
+  const bruto = saldo;
+  const rendBruto = bruto - investido;
+  const ir = isentoIR ? 0 : Math.max(rendBruto,0) * irAliquota(meses*30);
+  const liquido = bruto - ir;
+  return { investido, bruto, rendBruto, ir, liquido, rendLiquido: liquido-investido, isento: !!isentoIR, taxaAM: i*100 };
+}
+/* Financiamento PRICE: parcela fixa. */
+function financiamentoPrice(financiado, i, n){
+  const parcela = i===0 ? financiado/n : financiado * i / (1 - Math.pow(1+i, -n));
+  const totalPago = parcela * n;
+  return { parcela, totalPago, jurosTotal: totalPago - financiado };
+}
+/* Financiamento SAC: amortização constante, parcela decrescente. */
+function financiamentoSAC(financiado, i, n){
+  const amort = financiado / n;
+  const primeira = amort + financiado * i;
+  const ultima = amort + amort * i;
+  const jurosTotal = financiado * i * (n+1) / 2;
+  const totalPago = financiado + jurosTotal;
+  return { amort, primeira, ultima, media: totalPago/n, totalPago, jurosTotal };
+}
+/* Valor em poder de compra de hoje: deflaciona pela inflação anual projetada. */
+function valorReal(nominal, inflacaoAA, meses){
+  return nominal / Math.pow(1 + inflacaoAA/100, meses/12);
+}
+/* ===== MATH-END ===== */
+
+/* ---------- Formatação pt-BR ---------- */
+const fmtBRL = v => v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmtPct = (v,d=2) => v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}) + "%";
+const fmtNum = (v,d=2) => v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+
+/* ---------- Taxa mensal por tipo de investimento (usa taxas ao vivo) ---------- */
+function taxaMensal(tipo, pctCDI){
+  switch(tipo){
+    case "cdb":
+    case "lci":
+      if(state.cdi==null) return null;
+      return aaToAM(state.cdi * (pctCDI/100));
+    case "tesouro":
+      if(state.selic==null) return null;
+      return aaToAM(Math.max(state.selic - 0.20, 0)); // custódia B3 0,20% a.a.
+    case "poupanca":
+      if(state.poupancaAM==null) return null;
+      return state.poupancaAM/100;
+  }
+  return null;
+}
+function simular(tipo, pctCDI, inicial, aporte, meses){
+  const i = taxaMensal(tipo, pctCDI);
+  if(i==null) return null;
+  return simularCore(i, inicial, aporte, meses, (tipo==="lci"||tipo==="poupanca"));
+}
+
+/* ---------- Painel ---------- */
+function setCard(id, valueText, subText, isErr){
+  const el = document.getElementById(id);
+  el.classList.remove("loading");
+  el.classList.toggle("error", !!isErr);
+  el.querySelector(".value").textContent = valueText;
+  if(subText != null) el.querySelector(".sub").textContent = subText;
+}
+
+/* ---------- Valores de referência (usados só quando a API não responde) ---------- */
+const FB = { selic:14.25, cdi:14.15, ipca12:4.64, ipcam:0.16, igpm12:3.16, igpmM:-0.50, usd:5.11, eur:5.83, tr:0.13 };
+const FB_DATA = "12/07/2026";
+
+async function loadAll(){
+  const btn = document.getElementById("refreshBtn");
+  const dot = document.getElementById("statusDot");
+  const txt = document.getElementById("statusText");
+  btn.disabled = true; dot.className = "dot"; txt.textContent = "Carregando dados…";
+  document.querySelectorAll(".card").forEach(c=>{c.classList.add("loading");c.classList.remove("error");c.classList.remove("fallback");});
+
+  let ok = 0, fb = 0; const total = 8;
+  function fallback(key, cardId, texto){
+    state[key] = FB[key]; fb++;
+    const el = document.getElementById(cardId);
+    el.classList.remove("loading"); el.classList.add("fallback");
+    el.querySelector(".value").textContent = texto;
+    el.querySelector(".sub").textContent = "referência "+FB_DATA+" · sem conexão";
+  }
+
+  const tarefas = [
+    (async ()=>{ const j = await fetchSGS(SGS.selic,1); state.selic = parseFloat(j[0].valor);
+      setCard("c-selic", fmtPct(state.selic), "% ao ano · "+j[0].data); ok++; })().catch(()=> fallback("selic","c-selic", fmtPct(FB.selic))),
+    (async ()=>{ const j = await fetchSGS(SGS.cdi,1); state.cdi = parseFloat(j[0].valor);
+      setCard("c-cdi", fmtPct(state.cdi), "% ao ano · "+j[0].data); ok++; })().catch(()=> fallback("cdi","c-cdi", fmtPct(FB.cdi))),
+    (async ()=>{ const j = await fetchSGS(SGS.ipca12,1); state.ipca12 = parseFloat(j[0].valor);
+      setCard("c-ipca12", fmtPct(state.ipca12), "acumulado até "+j[0].data); ok++; })().catch(()=> fallback("ipca12","c-ipca12", fmtPct(FB.ipca12))),
+    (async ()=>{ const j = await fetchSGS(SGS.ipcam,1); state.ipcam = parseFloat(j[0].valor);
+      setCard("c-ipcam", fmtPct(state.ipcam), "referente a "+j[0].data); ok++; })().catch(()=> fallback("ipcam","c-ipcam", fmtPct(FB.ipcam))),
+    (async ()=>{ const j = await fetchSGS(SGS.igpm,12);
+      state.igpmM = parseFloat(j[j.length-1].valor);
+      state.igpm12 = (compostoSerie(j.map(p=>parseFloat(p.valor))) - 1) * 100;
+      setCard("c-igpm12", fmtPct(state.igpm12), "12 meses até "+j[j.length-1].data);
+      setCard("c-igpmm", fmtPct(state.igpmM), "referente a "+j[j.length-1].data); ok++; })().catch(()=>{
+      fallback("igpm12","c-igpm12", fmtPct(FB.igpm12));
+      fallback("igpmM","c-igpmm", fmtPct(FB.igpmM)); }),
+    (async ()=>{ const j = await fetchSGS(SGS.usd,1); state.usd = parseFloat(j[0].valor);
+      setCard("c-usd", fmtBRL(state.usd), "venda · "+j[0].data); ok++; })().catch(()=> fallback("usd","c-usd", fmtBRL(FB.usd))),
+    (async ()=>{ const j = await fetchSGS(SGS.eur,1); state.eur = parseFloat(j[0].valor);
+      setCard("c-eur", fmtBRL(state.eur), "venda · "+j[0].data); ok++; })().catch(()=> fallback("eur","c-eur", fmtBRL(FB.eur))),
+    (async ()=>{ const j = await fetchSGS(SGS.tr,1); state.tr = parseFloat(j[0].valor);
+      setCard("c-tr", fmtPct(state.tr,4), "% a.m. · "+j[0].data); ok++; })().catch(()=> fallback("tr","c-tr", fmtPct(FB.tr,4)))
+  ];
+  await Promise.all(tarefas);
+
+  // Poupança sempre calculável: Selic e TR sempre existem (ao vivo ou referência)
+  state.poupancaAM = calcPoupancaAM(state.selic, state.tr);
+  setCard("c-poup", fmtPct(state.poupancaAM,4), "% ao mês (regra oficial)");
+  if(fb>0) document.getElementById("c-poup").classList.add("fallback");
+
+  document.getElementById("offlineNote").style.display = fb>0 ? "" : "none";
+
+  state.lastUpdate = new Date();
+  const hora = state.lastUpdate.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  if(fb === 0){ dot.className="dot ok"; txt.textContent = "Dados oficiais · atualizado às "+hora; }
+  else if(ok > 0){ dot.className="dot warn"; txt.textContent = "Parcial: "+fb+" de "+total+" em modo referência ("+FB_DATA+")"; }
+  else { dot.className="dot warn"; txt.textContent = "Sem conexão · valores de referência de "+FB_DATA; }
+  btn.disabled = false;
+
+}
+
+/* ---------- Linha de resultado ---------- */
+function rline(k,v,cls){ return `<div class="rline"><span class="k">${k}</span><span class="v ${cls||""}">${v}</span></div>`; }
+
+/* ---------- Aba: Investir ---------- */
+const tipoSel = document.getElementById("simTipo");
+tipoSel.addEventListener("change", ()=>{
+  const t = tipoSel.value;
+  document.getElementById("fieldPct").style.display = (t==="cdb"||t==="lci") ? "" : "none";
+  if(t==="cdb") document.getElementById("simPct").value = "100";
+  if(t==="lci") document.getElementById("simPct").value = "90";
+});
+
+const modoSel = document.getElementById("simModo");
+modoSel.addEventListener("change", ()=>{
+  document.getElementById("fieldAporte").style.display = modoSel.value==="aporte" ? "" : "none";
+});
+
+document.getElementById("simBtn").addEventListener("click", ()=>{
+  const err = document.getElementById("simErr"), res = document.getElementById("simRes");
+  err.classList.remove("show"); res.classList.remove("show");
+  const tipo = tipoSel.value;
+  const pct = parseBR(document.getElementById("simPct").value);
+  const inicial = parseBR(document.getElementById("simValor").value) || 0;
+  const aporte = modoSel.value==="aporte" ? (parseBR(document.getElementById("simAporte").value) || 0) : 0;
+  const meses = Math.round(parseBR(document.getElementById("simMeses").value));
+  if(!(inicial>0) && !(aporte>0)){ err.textContent="Informe um valor inicial ou um aporte mensal."; err.classList.add("show"); return; }
+  if(!(meses>0)){ err.textContent="Informe o prazo em meses (número inteiro maior que zero)."; err.classList.add("show"); return; }
+  if((tipo==="cdb"||tipo==="lci") && !(pct>0)){ err.textContent="Informe o percentual do CDI."; err.classList.add("show"); return; }
+
+  const s = simular(tipo, pct, inicial, aporte, meses);
+  if(!s){ err.textContent="Taxas ainda não carregadas. Toque em Atualizar no topo e tente de novo."; err.classList.add("show"); return; }
+
+  const nomes = {cdb:"CDB "+fmtNum(pct,0)+"% CDI", lci:"LCI/LCA "+fmtNum(pct,0)+"% CDI", tesouro:"Tesouro Selic", poupanca:"Poupança"};
+  const ipca = state.ipca12!=null ? state.ipca12 : FB.ipca12;
+  const liquidoReal = valorReal(s.liquido, ipca, meses);
+  const ganhoReal = liquidoReal - s.investido;
+  res.innerHTML =
+    rline("Investimento", nomes[tipo]) +
+    rline("Taxa usada", fmtPct(s.taxaAM,4)+" a.m.") +
+    rline("Total investido", fmtBRL(s.investido)) +
+    rline("Valor bruto ao final", fmtBRL(s.bruto)) +
+    rline("Rendimento bruto", fmtBRL(s.rendBruto), "pos") +
+    rline(s.isento?"IR (isento)":"IR ("+fmtNum(irAliquota(meses*30)*100,1)+"% sobre o lucro)", s.ir>0?("− "+fmtBRL(s.ir)):"R$ 0,00", s.ir>0?"neg":"") +
+    rline("① Valor líquido", fmtBRL(s.liquido), "big") +
+    rline("Ganho líquido", fmtBRL(s.rendLiquido)+" ("+fmtPct(s.investido>0?(s.rendLiquido/s.investido*100):0)+")", "pos") +
+    rline("② Descontando a inflação (IPCA "+fmtPct(ipca)+" a.a.)", fmtBRL(liquidoReal), "big") +
+    rline("Ganho real (acima da inflação)", fmtBRL(ganhoReal)+" ("+fmtPct(s.investido>0?(ganhoReal/s.investido*100):0)+")", ganhoReal>=0?"pos":"neg") +
+    `<div class="note">② mostra quanto o valor final vale em poder de compra de hoje: é o líquido "deflacionado" pela inflação projetada do período. Se o ganho real for negativo, o dinheiro cresceu em números mas perdeu poder de compra.</div>`;
+  res.classList.add("show");
+});
+
+/* ---------- Aba: Corrigir (IPCA / IGP-M) ---------- */
+document.getElementById("ipcaBtn").addEventListener("click", async ()=>{
+  const err = document.getElementById("ipcaErr"), res = document.getElementById("ipcaRes");
+  const btn = document.getElementById("ipcaBtn");
+  err.classList.remove("show"); res.classList.remove("show");
+  const codigo = document.getElementById("ipcaIndice").value;
+  const nomeIdx = codigo==="189" ? "IGP-M" : "IPCA";
+  const valor = parseBR(document.getElementById("ipcaValor").value);
+  const de = document.getElementById("ipcaDe").value;   // aaaa-mm
+  const ate = document.getElementById("ipcaAte").value; // aaaa-mm
+  if(!(valor>0)){ err.textContent="Informe o valor a corrigir."; err.classList.add("show"); return; }
+  if(!de || !ate){ err.textContent="Informe o mês inicial e o mês final."; err.classList.add("show"); return; }
+  if(de >= ate){ err.textContent="O mês inicial precisa ser anterior ao mês final."; err.classList.add("show"); return; }
+
+  const [ya,ma] = de.split("-"), [yb,mb] = ate.split("-");
+  const dtIni = `01/${ma}/${ya}`;
+  const lastDay = new Date(parseInt(yb), parseInt(mb), 0).getDate();
+  const dtFim = `${String(lastDay).padStart(2,"0")}/${mb}/${yb}`;
+  const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${codigo}/dados?formato=json&dataInicial=${dtIni}&dataFinal=${dtFim}`;
+
+  btn.disabled = true; btn.textContent = "Buscando série do "+nomeIdx+"…";
+  try{
+    const r = await fetch(url,{cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const serie = await r.json();
+    if(!serie.length) throw new Error("Sem dados no período.");
+    const fator = compostoSerie(serie.map(p=>parseFloat(p.valor)));
+    const corrigido = valor * fator;
+    const acum = (fator-1)*100;
+    const ultimo = serie[serie.length-1].data;
+    res.innerHTML =
+      rline("Índice", nomeIdx) +
+      rline("Meses computados", String(serie.length)+" (até "+ultimo+")") +
+      rline(nomeIdx+" acumulado", fmtPct(acum), acum>=0?"neg":"pos") +
+      rline("Valor original", fmtBRL(valor)) +
+      rline("Valor corrigido", fmtBRL(corrigido), "big") +
+      rline("Diferença", fmtBRL(corrigido-valor));
+    res.classList.add("show");
+  }catch(e){
+    err.textContent = "A correção precisa buscar a série histórica completa do "+nomeIdx+" no Banco Central, então exige internet. No preview do app do Claude a conexão é bloqueada — abra no Safari ou no GitHub Pages e funcionará.";
+    err.classList.add("show");
+  }finally{
+    btn.disabled = false; btn.textContent = "Corrigir valor";
+  }
+});
+
+/* ---------- Aba: Financiar ---------- */
+const finTipo = document.getElementById("finTipo");
+finTipo.addEventListener("change", ()=>{
+  if(finTipo.value==="carro"){
+    document.getElementById("finSistema").value = "price";
+    document.getElementById("finValor").value = "60.000,00";
+    document.getElementById("finEntrada").value = "12.000,00";
+    document.getElementById("finTaxa").value = "1,49";
+    document.getElementById("finUnidade").value = "am";
+    document.getElementById("finMeses").value = "48";
+  }else{
+    document.getElementById("finSistema").value = "sac";
+    document.getElementById("finValor").value = "300.000,00";
+    document.getElementById("finEntrada").value = "60.000,00";
+    document.getElementById("finTaxa").value = "11,00";
+    document.getElementById("finUnidade").value = "aa";
+    document.getElementById("finMeses").value = "360";
+  }
+});
+
+document.getElementById("finBtn").addEventListener("click", ()=>{
+  const err = document.getElementById("finErr"), res = document.getElementById("finRes");
+  err.classList.remove("show"); res.classList.remove("show");
+  const valor = parseBR(document.getElementById("finValor").value);
+  const entrada = parseBR(document.getElementById("finEntrada").value) || 0;
+  const taxa = parseBR(document.getElementById("finTaxa").value);
+  const unidade = document.getElementById("finUnidade").value;
+  const n = Math.round(parseBR(document.getElementById("finMeses").value));
+  const sistema = document.getElementById("finSistema").value;
+
+  if(!(valor>0)){ err.textContent="Informe o valor do bem."; err.classList.add("show"); return; }
+  if(entrada<0 || entrada>=valor){ err.textContent="A entrada precisa ser menor que o valor do bem."; err.classList.add("show"); return; }
+  if(!(taxa>=0) || isNaN(taxa)){ err.textContent="Informe a taxa de juros."; err.classList.add("show"); return; }
+  if(!(n>0)){ err.textContent="Informe o prazo em meses."; err.classList.add("show"); return; }
+
+  const i = unidade==="aa" ? aaToAM(taxa) : taxa/100;
+  const financiado = valor - entrada;
+  const taxaAAeq = (Math.pow(1+i,12)-1)*100;
+
+  let html =
+    rline("Valor financiado", fmtBRL(financiado)) +
+    rline("Taxa", fmtPct(i*100,2)+" a.m. = "+fmtPct(taxaAAeq,2)+" a.a.") +
+    rline("Prazo", n+" meses");
+
+  let totalPago, jurosTotal;
+  if(sistema==="price"){
+    const f = financiamentoPrice(financiado, i, n);
+    totalPago = f.totalPago; jurosTotal = f.jurosTotal;
+    html += rline("Parcela fixa (PRICE)", fmtBRL(f.parcela), "big");
+  }else{
+    const f = financiamentoSAC(financiado, i, n);
+    totalPago = f.totalPago; jurosTotal = f.jurosTotal;
+    html += rline("1ª parcela (SAC)", fmtBRL(f.primeira), "big") +
+            rline("Última parcela", fmtBRL(f.ultima)) +
+            rline("Parcela média", fmtBRL(f.media));
+  }
+  html +=
+    rline("Total pago em parcelas", fmtBRL(totalPago)) +
+    rline("Juros totais", "− "+fmtBRL(jurosTotal), "neg") +
+    rline("Juros sobre o financiado", fmtPct(financiado>0?(jurosTotal/financiado*100):0,1), "neg") +
+    rline("Custo total (entrada + parcelas)", fmtBRL(entrada + totalPago));
+  res.innerHTML = html + `<div class="note">Cálculo financeiro exato pelo sistema ${sistema==="price"?"PRICE":"SAC"}. O contrato real do banco acrescenta IOF, seguros e tarifas — por isso o CET (Custo Efetivo Total) impresso no contrato será um pouco maior que a taxa de juros pura. Sempre compare pelo CET.</div>`;
+  res.classList.add("show");
+});
+
+/* ---------- Aba: Comparar ---------- */
+document.getElementById("compBtn").addEventListener("click", ()=>{
+  const err = document.getElementById("compErr"), res = document.getElementById("compRes");
+  err.classList.remove("show"); res.classList.remove("show");
+  const inicial = parseBR(document.getElementById("compValor").value) || 0;
+  const aporte = parseBR(document.getElementById("compAporte").value) || 0;
+  const meses = Math.round(parseBR(document.getElementById("compMeses").value));
+  if(!(inicial>0) && !(aporte>0)){ err.textContent="Informe um valor inicial ou um aporte mensal."; err.classList.add("show"); return; }
+  if(!(meses>0)){ err.textContent="Informe o prazo em meses."; err.classList.add("show"); return; }
+
+  const opcoes = [
+    ["Poupança",        simular("poupanca",0,   inicial, aporte, meses)],
+    ["CDB 100% CDI",    simular("cdb",100,      inicial, aporte, meses)],
+    ["CDB 110% CDI",    simular("cdb",110,      inicial, aporte, meses)],
+    ["LCI/LCA 90% CDI", simular("lci",90,       inicial, aporte, meses)],
+    ["Tesouro Selic",   simular("tesouro",0,    inicial, aporte, meses)]
+  ];
+  if(opcoes.some(o=>o[1]==null)){ err.textContent="Taxas ainda não carregadas. Toque em Atualizar no topo e tente de novo."; err.classList.add("show"); return; }
+
+  opcoes.sort((a,b)=>b[1].liquido - a[1].liquido);
+  const investido = opcoes[0][1].investido;
+  let html = rline("Total investido", fmtBRL(investido)) + rline("Prazo", meses+" meses");
+  html += `<table class="ctable"><thead><tr><th>Opção</th><th style="text-align:right">Líquido</th><th style="text-align:right">Ganho</th></tr></thead><tbody>`;
+  opcoes.forEach((o,idx)=>{
+    html += `<tr class="${idx===0?"best":""}"><td>${o[0]}</td><td class="num">${fmtBRL(o[1].liquido)}</td><td class="num">${fmtBRL(o[1].rendLiquido)}</td></tr>`;
+  });
+  html += `</tbody></table><div class="note">Valores líquidos: IR regressivo já descontado onde se aplica. LCI/LCA e Poupança são isentas de IR. Os percentuais do CDI são referências de mercado — ajuste na aba Investir para a taxa exata que o banco te oferecer.</div>`;
+  res.innerHTML = html;
+  res.classList.add("show");
+});
+
+/* ---------- Botões "!" (cards e abas) ---------- */
+document.querySelectorAll(".info").forEach(b=>{
+  b.addEventListener("click", (ev)=>{
+    ev.stopPropagation();
+    const box = b.parentElement.querySelector(".explain");
+    const aberto = box.classList.toggle("show");
+    b.classList.toggle("open", aberto);
+  });
+});
+
+/* ---------- Abas ---------- */
+document.querySelectorAll(".tabs button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById("tab-"+b.dataset.tab).classList.add("active");
+  });
+});
+
+document.getElementById("refreshBtn").addEventListener("click", loadAll);
+
+/* Pré-preenche datas da correção: últimos 12 meses divulgados */
+(function(){
+  const now = new Date();
+  const fim = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const ini = new Date(fim.getFullYear()-1, fim.getMonth(), 1);
+  const mm = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+  document.getElementById("ipcaDe").value = mm(ini);
+  document.getElementById("ipcaAte").value = mm(fim);
+})();
+
+loadAll();
+
+/* Service worker: faz o app abrir mesmo sem internet depois da 1ª visita */
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>
