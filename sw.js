@@ -1,48 +1,58 @@
-/* Service Worker — Indicadores Guimas v4
-   ISOLAMENTO: apaga somente caches com o prefixo deste app.
-   O Cache Storage é compartilhado por ORIGEM; a versão anterior apagava
-   os caches do Semanal, Despesas, Gestão e Resultados. */
+/* Service Worker — Indicadores Guimas v4.3
+   Isolado: gerencia apenas caches com o prefixo deste app.
+   O app é praticamente autocontido; somente a navegação/index.html usa fallback offline. */
 const PREFIX = "guimas-indicadores-shell-v";
-const CACHE  = PREFIX + "4";
-const SHELL  = ["./", "./index.html"];
+const CACHE  = PREFIX + "4-3";
+const LEGACY = "indicadores-guimas-v1";
+const INDEX  = new URL("./index.html", self.registration.scope).href;
 
-self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(()=>{}));
-  self.skipWaiting();
+self.addEventListener("install", (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    try {
+      const fresh = await fetch(INDEX, { cache: "no-store" });
+      if (fresh && fresh.ok) await cache.put(INDEX, fresh.clone());
+    } catch (_) {}
+    await self.skipWaiting();
+  })());
 });
 
-self.addEventListener("activate", (e) => {
-  e.waitUntil((async () => {
-    const LEGADO = "indicadores-guimas-v1";   // nome antigo, fora do prefixo novo
-    const ks = await caches.keys();
+self.addEventListener("activate", (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
     await Promise.all(
-      ks.filter((k) => (k.startsWith(PREFIX) && k !== CACHE) || k === LEGADO)
+      keys
+        .filter((k) => (k.startsWith(PREFIX) && k !== CACHE) || k === LEGACY)
         .map((k) => caches.delete(k))
     );
     await self.clients.claim();
   })());
 });
 
-self.addEventListener("fetch", (e) => {
-  const req = e.request;
+function isHtml(req, url) {
+  return req.mode === "navigate" || req.destination === "document" ||
+    url.pathname.endsWith("/") || url.pathname.endsWith("/index.html");
+}
+
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;   // API do BCB passa direto
+  if (url.origin !== self.location.origin) return;
+  if (!isHtml(req, url)) return;
 
-  // Navegação/documento: rede primeiro, cache como reserva, fallback HTML só aqui.
-  if (req.mode === "navigate" || req.destination === "document") {
-    e.respondWith(
-      fetch(req, { cache: "no-store" })
-        .then((r) => { const c = r.clone(); caches.open(CACHE).then((x) => x.put(req, c)); return r; })
-        .catch(() => caches.match(req).then((m) => m || caches.match("./index.html")))
-    );
-    return;
-  }
-
-  // Demais recursos: cache primeiro, rede depois. NUNCA devolve HTML no lugar.
-  e.respondWith(
-    caches.match(req).then((m) => m ||
-      fetch(req).then((r) => { const c = r.clone(); caches.open(CACHE).then((x) => x.put(req, c)); return r; })
-    )
-  );
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    try {
+      const fresh = await fetch(req, { cache: "no-store" });
+      if (fresh && fresh.ok) {
+        event.waitUntil(cache.put(INDEX, fresh.clone()));
+      }
+      return fresh;
+    } catch (err) {
+      const hit = await cache.match(INDEX);
+      if (hit) return hit;
+      throw err;
+    }
+  })());
 });

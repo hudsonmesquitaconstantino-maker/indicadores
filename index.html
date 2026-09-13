@@ -9,9 +9,6 @@
 <meta name="theme-color" content="#0D1220">
 <link rel="apple-touch-icon" href="./1B75639A-2443-4BCA-823E-B6808B815AD1.png">
 <title>Indicadores &amp; Simulador — Guimas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>:root{
   --bg:#0E1113;
   --panel:#16191C;
@@ -23,7 +20,7 @@
   --amber-dim:#B8791B;
   --green:#2E7D5B;
   --red:#C0453A;
-  --disp:'Barlow Condensed',Impact,sans-serif;
+  --disp:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,sans-serif;
   --body:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -36,12 +33,13 @@ body{font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smooth
 header{position:sticky;top:0;z-index:20;background:rgba(14,17,19,.92);
   backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);
   border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
-.hdr{display:flex;align-items:center;gap:10px;padding:12px 0}
+.hdr{display:flex;align-items:center;gap:10px;padding:12px 14px}
 .brand{font-size:19px;font-weight:600;letter-spacing:-.02em}
 .brand b{color:var(--amber);font-weight:700}
-button.ghost{margin-left:auto;width:36px;height:36px;border-radius:50%;background:var(--panel2);
+button.ghost{margin-left:auto;width:44px;height:44px;border-radius:50%;background:var(--panel2);
   border:1px solid var(--line);color:var(--ink-soft);font-size:17px;line-height:1;cursor:pointer}
 button.ghost:active{transform:scale(.94)}
+button.ghost:disabled{opacity:.5;cursor:default}
 
 /* ---------- status ---------- */
 .status{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);margin:12px 0 4px}
@@ -49,11 +47,11 @@ button.ghost:active{transform:scale(.94)}
 .dot.ok{background:#3FBF8F}.dot.warn{background:var(--amber)}.dot.err{background:var(--red)}
 
 /* ---------- abas ---------- */
-.tabs{display:flex;gap:6px;overflow-x:auto;margin:10px 0 14px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
-.tabs::-webkit-scrollbar{display:none}
-.tab{flex:0 0 auto;padding:9px 14px;border-radius:9px;border:1px solid var(--line);
-  background:var(--panel);color:var(--ink-soft);font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0 14px}
+.tab{width:100%;min-width:0;padding:9px 6px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink-soft);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;touch-action:manipulation;min-height:44px}
 .tab.on{background:var(--amber);border-color:var(--amber);color:#141A18}
+@media (min-width:700px){.tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
 
 /* ---------- painéis: SÓ UM VISÍVEL ---------- */
 .pane{display:none}
@@ -83,7 +81,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--ink-soft) 50
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 button.go{width:100%;margin-top:16px;padding:14px;border-radius:11px;border:none;
-  background:var(--amber);color:#141A18;font-size:15.5px;font-weight:700;font-family:var(--body);cursor:pointer}
+  background:var(--amber);color:#141A18;font-size:15.5px;font-weight:700;font-family:var(--body);cursor:pointer;min-height:44px}
 button.go:active{transform:scale(.985)}
 button.go:disabled{opacity:.55}
 
@@ -129,7 +127,7 @@ button.go:disabled{opacity:.55}
 .seg{display:flex;gap:6px;margin-bottom:14px}
 .seg button{flex:1;padding:10px 6px;border-radius:9px;border:1px solid var(--line);
   background:var(--panel);color:var(--ink-soft);font-size:13px;font-weight:600;
-  font-family:var(--body);cursor:pointer}
+  font-family:var(--body);cursor:pointer;min-height:44px}
 .seg button.on{background:var(--panel2);border-color:var(--amber);color:var(--amber)}
 
 /* ---------- caixas de aviso ---------- */
@@ -141,15 +139,19 @@ button.go:disabled{opacity:.55}
 .testes{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;
   white-space:pre-wrap;line-height:1.6;color:var(--ink-soft)}
 .chk{display:flex;align-items:center;gap:9px;margin-top:12px;font-size:13.5px;color:var(--ink-soft)}
-.chk input{width:auto;flex:0 0 auto}
+
+.hint{font-size:11.5px;color:var(--ink-soft);margin-top:5px;line-height:1.4;text-transform:none;letter-spacing:0}
+.chk{text-transform:none;letter-spacing:0;line-height:1.35}
+.chk input{width:22px;height:22px;accent-color:var(--amber)}
+@media (max-width:350px){.row2{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap hdr">
-    <div class="brand"><b>Indicadores</b> Guimas <span style="font-size:11px;color:var(--ink-soft);font-weight:500">v4</span></div>
-    <button id="refreshBtn" class="ghost" title="Atualizar">&#8635;</button>
+    <div class="brand"><b>Indicadores</b> Guimas <span style="font-size:11px;color:var(--ink-soft);font-weight:500">v4.3</span></div>
+    <button id="refreshBtn" class="ghost" type="button" title="Atualizar" aria-label="Atualizar indicadores">&#8635;</button>
   </div>
 </header>
 
@@ -157,12 +159,12 @@ button.go:disabled{opacity:.55}
   <div id="statusLine" class="status"><span id="dot" class="dot"></span><span id="statusTxt">Carregando…</span></div>
 
   <nav class="tabs">
-    <button class="tab on" data-tab="painel">Indicadores</button>
-    <button class="tab" data-tab="investir">Investir</button>
-    <button class="tab" data-tab="financiar">Financiar</button>
-    <button class="tab" data-tab="corrigir">Corrigir</button>
-    <button class="tab" data-tab="comparar">Comparar</button>
-    <button class="tab" data-tab="testes">Testes</button>
+    <button type="button" class="tab on" data-tab="painel">Indicadores</button>
+    <button type="button" class="tab" data-tab="investir">Investir</button>
+    <button type="button" class="tab" data-tab="financiar">Financiar</button>
+    <button type="button" class="tab" data-tab="corrigir">Corrigir</button>
+    <button type="button" class="tab" data-tab="comparar">Comparar</button>
+    <button type="button" class="tab" data-tab="testes">Testes</button>
   </nav>
 
   <!-- ================= PAINEL ================= -->
@@ -189,11 +191,11 @@ button.go:disabled{opacity:.55}
     <div class="explain">Simulação com tributação <b>por lote</b>: cada aporte tem sua própria data, prazo, IOF e IR.
       Projeção mantendo as taxas de hoje — é <b>cenário</b>, não previsão. Modo histórico do CDI fica para uma versão futura.</div>
     <div class="row2">
-      <div><label>Valor inicial</label><input id="iInicial" inputmode="decimal" placeholder="0,00"></div>
-      <div><label>Aporte mensal</label><input id="iAporte" inputmode="decimal" placeholder="500,00"></div>
+      <div><label>Valor inicial</label><input id="iInicial" inputmode="decimal" value="10.000,00" placeholder="0,00"></div>
+      <div><label>Aporte mensal</label><input id="iAporte" inputmode="decimal" value="500,00" placeholder="500,00"></div>
     </div>
     <div class="row2">
-      <div><label>Prazo (meses)</label><input id="iMeses" inputmode="numeric" placeholder="24"></div>
+      <div><label>Prazo (meses)</label><input id="iMeses" inputmode="numeric" value="24" placeholder="24"></div>
       <div><label>Produto</label><select id="iProduto">
         <option value="cdb">CDB (% do CDI)</option>
         <option value="lci">LCI (isenta de IR)</option>
@@ -203,10 +205,10 @@ button.go:disabled{opacity:.55}
       </select></div>
     </div>
     <div class="row2">
-      <div><label>% do CDI (CDB/LCI/LCA)</label><input id="iPct" inputmode="decimal" placeholder="100"></div>
-      <div><label>Carência da emissão (dias)</label><input id="iCarencia" inputmode="numeric" placeholder="automática"></div>
+      <div id="iPctWrap"><label>% do CDI (CDB/LCI/LCA)</label><input id="iPct" inputmode="decimal" value="100" placeholder="100"></div>
+      <div id="iCarenciaWrap"><label>Prazo/carência da emissão (dias)</label><input id="iCarencia" inputmode="numeric" value="0" autocomplete="off"><div class="hint" id="iCarenciaHint">CDB com liquidez diária: 0. Não confundir com o IOF dos primeiros 30 dias.</div></div>
     </div>
-    <div><label>Já possui em Tesouro Selic</label><input id="iEstoque" inputmode="decimal" placeholder="0,00"></div>
+    <div id="iEstoqueWrap"><label>Já possui em Tesouro Selic</label><input id="iEstoque" inputmode="decimal" value="0,00" placeholder="0,00"><div class="hint">Usado só para calcular a faixa de isenção da custódia B3.</div></div>
     <label style="display:flex;align-items:center;gap:8px;margin-top:6px">
       <input type="checkbox" id="iCorrigeAporte" style="width:auto"> Corrigir meus aportes pela inflação (manter o poder de compra)
     </label>
@@ -225,18 +227,18 @@ button.go:disabled{opacity:.55}
 
     <div id="fin-simular">
       <div class="row2">
-        <div><label>Valor do bem</label><input id="fValor" inputmode="decimal" placeholder="100.000,00"></div>
-        <div><label>Entrada</label><input id="fEntrada" inputmode="decimal" placeholder="30.000,00"></div>
+        <div><label>Valor do bem</label><input id="fValor" inputmode="decimal" value="100.000,00" placeholder="100.000,00"></div>
+        <div><label>Entrada</label><input id="fEntrada" inputmode="decimal" value="30.000,00" placeholder="30.000,00"></div>
       </div>
       <div class="row2">
-        <div><label>Taxa de juros</label><input id="fTaxa" inputmode="decimal" placeholder="1,39"></div>
-        <div><label>Unidade da taxa</label><select id="fUnidade"><option value="am">% ao mês</option><option value="aa">% ao ano</option></select></div>
+        <div><label>Taxa de juros</label><input id="fTaxa" inputmode="decimal" value="1,39" placeholder="1,39"></div>
+        <div><label>Unidade da taxa</label><select id="fUnidade"><option value="am">% ao mês</option><option value="aa">% ao ano (efetiva)</option></select></div>
       </div>
       <div class="row2">
-        <div><label>Prazo (meses)</label><input id="fPrazo" inputmode="numeric" placeholder="48"></div>
-        <div><label>Custos financiados</label><input id="fCustoFin" inputmode="decimal" placeholder="0,00"></div>
+        <div><label>Prazo (meses)</label><input id="fPrazo" inputmode="numeric" value="48" placeholder="48"></div>
+        <div><label>Custos financiados</label><input id="fCustoFin" inputmode="decimal" value="0,00" placeholder="0,00"></div>
       </div>
-      <div><label>Custos pagos à vista</label><input id="fCustoVista" inputmode="decimal" placeholder="0,00"></div>
+      <div><label>Custos pagos à vista</label><input id="fCustoVista" inputmode="decimal" value="0,00" placeholder="0,00"></div>
       <div class="row2">
         <div><label>Data da liberação/contratação</label><input id="fData0" type="date"></div>
         <div><label>1º vencimento</label><input id="fPrimeiro" type="date"></div>
@@ -251,14 +253,14 @@ button.go:disabled{opacity:.55}
     <div id="fin-decifrar" style="display:none">
       <div class="explain">Informe a proposta do banco. O app descobre a <b>taxa que está embutida</b> e o custo real.</div>
       <div class="row2">
-        <div><label>Valor líquido usado no bem</label><input id="dLiquido" inputmode="decimal" placeholder="70.000,00"></div>
-        <div><label>Custos financiados</label><input id="dCustoFin" inputmode="decimal" placeholder="0,00"></div>
+        <div><label>Valor líquido usado no bem</label><input id="dLiquido" inputmode="decimal" value="70.000,00" placeholder="70.000,00"></div>
+        <div><label>Custos financiados</label><input id="dCustoFin" inputmode="decimal" value="0,00" placeholder="0,00"></div>
       </div>
       <div class="row2">
-        <div><label>Parcela</label><input id="dParc" inputmode="decimal" placeholder="2.190,00"></div>
-        <div><label>Nº de parcelas</label><input id="dN" inputmode="numeric" placeholder="48"></div>
+        <div><label>Parcela</label><input id="dParc" inputmode="decimal" value="2.190,00" placeholder="2.190,00"></div>
+        <div><label>Nº de parcelas</label><input id="dN" inputmode="numeric" value="48" placeholder="48"></div>
       </div>
-      <div><label>Custos pagos à vista</label><input id="dCustoVista" inputmode="decimal" placeholder="0,00"></div>
+      <div><label>Custos pagos à vista</label><input id="dCustoVista" inputmode="decimal" value="0,00" placeholder="0,00"></div>
       <div class="row2">
         <div><label>Data da liberação/contratação</label><input id="dData0" type="date"></div>
         <div><label>1º vencimento</label><input id="dPrimeiro" type="date"></div>
@@ -270,15 +272,15 @@ button.go:disabled{opacity:.55}
 
     <div id="fin-amortizar" style="display:none">
       <div class="row2">
-        <div><label>Valor financiado</label><input id="aFin" inputmode="decimal" placeholder="70.000,00"></div>
-        <div><label>Taxa de juros</label><input id="aTaxa" inputmode="decimal" placeholder="1,39"></div>
+        <div><label>Valor financiado</label><input id="aFin" inputmode="decimal" value="70.000,00" placeholder="70.000,00"></div>
+        <div><label>Taxa de juros</label><input id="aTaxa" inputmode="decimal" value="1,39" placeholder="1,39"></div>
       </div>
       <div class="row2">
-        <div><label>Unidade da taxa</label><select id="aUnidade"><option value="am">% ao mês</option><option value="aa">% ao ano</option></select></div>
-        <div><label>Prazo total (meses)</label><input id="aN" inputmode="numeric" placeholder="48"></div>
+        <div><label>Unidade da taxa</label><select id="aUnidade"><option value="am">% ao mês</option><option value="aa">% ao ano (efetiva)</option></select></div>
+        <div><label>Prazo total (meses)</label><input id="aN" inputmode="numeric" value="48" placeholder="48"></div>
       </div>
-      <div><label>Parcelas já pagas</label><input id="aPagas" inputmode="numeric" placeholder="17"></div>
-      <div><label>Quanto quer amortizar</label><input id="aValor" inputmode="decimal" placeholder="10.000,00"></div>
+      <div><label>Parcelas já pagas</label><input id="aPagas" inputmode="numeric" value="17" placeholder="17"></div>
+      <div><label>Quanto quer amortizar</label><input id="aValor" inputmode="decimal" value="10.000,00" placeholder="10.000,00"></div>
       <button id="amoBtn" class="go">Calcular</button>
       <div id="amoErr" class="err"></div>
       <div id="amoRes" class="res"></div>
@@ -289,7 +291,7 @@ button.go:disabled{opacity:.55}
   <section id="tab-corrigir" class="pane">
     <div class="explain">Correção com <b>as duas pontas inclusivas</b>, como a Calculadora do Cidadão. Para corrigir um único mês,
       informe o mesmo mês nos dois campos.</div>
-    <div><label>Valor a corrigir</label><input id="cValor" inputmode="decimal" placeholder="1.000,00"></div>
+    <div><label>Valor a corrigir</label><input id="cValor" inputmode="decimal" value="1.000,00" placeholder="1.000,00"></div>
     <div><label>Índice</label><select id="cIndice">
       <option value="433">IPCA</option>
       <option value="28655">IGP-M (correção oficial)</option>
@@ -298,7 +300,7 @@ button.go:disabled{opacity:.55}
       <div><label>De (mês/ano)</label><input id="cDe" type="month"></div>
       <div><label>Até (mês/ano)</label><input id="cAte" type="month"></div>
     </div>
-    <div><label>Juros do contrato (% a.a.) — opcional</label><input id="cJuros" inputmode="decimal" placeholder="0"></div>
+    <div><label>Juros do contrato (% a.a.) — opcional</label><input id="cJuros" inputmode="decimal" value="0" placeholder="0"></div>
     <button id="corBtn" class="go">Corrigir</button>
     <div id="corErr" class="err"></div>
     <div id="corRes" class="res"></div>
@@ -309,20 +311,20 @@ button.go:disabled{opacity:.55}
     <div class="explain">Compara o <b>líquido</b> de cada produto para o mesmo valor e prazo, com IR e IOF por lote,
       custódia do Tesouro e aniversário da poupança. Projeção com as taxas de hoje.</div>
     <div class="row2">
-      <div><label>Valor inicial</label><input id="kValor" inputmode="decimal" placeholder="10.000,00"></div>
-      <div><label>Aporte mensal</label><input id="kAporte" inputmode="decimal" placeholder="500,00"></div>
+      <div><label>Valor inicial</label><input id="kValor" inputmode="decimal" value="10.000,00" placeholder="10.000,00"></div>
+      <div><label>Aporte mensal</label><input id="kAporte" inputmode="decimal" value="500,00" placeholder="500,00"></div>
     </div>
     <div class="row2">
-      <div><label>Prazo (meses)</label><input id="kMeses" inputmode="numeric" placeholder="24"></div>
-      <div><label>Já possui em Tesouro Selic</label><input id="kEstoque" inputmode="decimal" placeholder="0,00"></div>
+      <div><label>Prazo (meses)</label><input id="kMeses" inputmode="numeric" value="24" placeholder="24"></div>
+      <div><label>Já possui em Tesouro Selic</label><input id="kEstoque" inputmode="decimal" value="0,00" placeholder="0,00"></div>
     </div>
     <div class="row2">
-      <div><label>% do CDI (CDB)</label><input id="kPctCdb" inputmode="decimal" placeholder="100"></div>
-      <div><label>% do CDI (LCI/LCA)</label><input id="kPctLc" inputmode="decimal" placeholder="90"></div>
+      <div><label>% do CDI (CDB)</label><input id="kPctCdb" inputmode="decimal" value="100" placeholder="100"></div>
+      <div><label>% do CDI (LCI/LCA)</label><input id="kPctLc" inputmode="decimal" value="90" placeholder="90"></div>
     </div>
     <div class="row2">
-      <div><label>Carência CDB (dias)</label><input id="kCarCdb" inputmode="numeric" placeholder="0"></div>
-      <div><label>Carência LCI/LCA (dias)</label><input id="kCarLc" inputmode="numeric" placeholder="180"></div>
+      <div><label>Carência CDB (dias)</label><input id="kCarCdb" inputmode="numeric" value="0" placeholder="0"></div>
+      <div><label>Prazo/carência LCI/LCA (dias)</label><input id="kCarLc" inputmode="numeric" placeholder="vazio = 6 meses"><div class="hint">Para LCI/LCA % CDI, vazio usa 6 meses calendário; informe o prazo real se a emissão for diferente.</div></div>
     </div>
     <button id="kBtn" class="go">Comparar</button>
     <div id="kErr" class="err"></div>
@@ -342,7 +344,7 @@ button.go:disabled{opacity:.55}
    Testável isoladamente. Embutido no index.html sem alteração. */
 
 /* ---------- datas ---------- */
-function dInt(d){ return Math.round(d.getTime()/86400000); }
+function dInt(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000); }
 function addMeses(d,n){ var x=new Date(d.getFullYear(), d.getMonth()+n, d.getDate());
   if(x.getDate()!==d.getDate()) x=new Date(d.getFullYear(), d.getMonth()+n+1, 0); return x; }
 function diasEntre(a,b){ return dInt(b)-dInt(a); }
@@ -391,11 +393,11 @@ function irAliquota(dias){
 
 /* ---------- regras por produto ---------- */
 var PRODUTOS={
-  cdb:      { nome:"CDB",          ir:true,  iof:true,  carenciaDias:0   },
-  lci:      { nome:"LCI",          ir:false, iof:true,  carenciaDias:180 },
-  lca:      { nome:"LCA",          ir:false, iof:false, carenciaDias:180 },
-  tesouro:  { nome:"Tesouro Selic",ir:true,  iof:true,  carenciaDias:0   },
-  poupanca: { nome:"Poupança",     ir:false, iof:false, carenciaDias:0   }
+  cdb:      { nome:"CDB",          ir:true,  iof:true,  carenciaDias:0, carenciaMeses:0 },
+  lci:      { nome:"LCI",          ir:false, iof:true,  carenciaDias:0, carenciaMeses:6 },
+  lca:      { nome:"LCA",          ir:false, iof:false, carenciaDias:0, carenciaMeses:6 },
+  tesouro:  { nome:"Tesouro Selic",ir:true,  iof:true,  carenciaDias:0, carenciaMeses:0 },
+  poupanca: { nome:"Poupança",     ir:false, iof:false, carenciaDias:0, carenciaMeses:0 }
 };
 
 /* ---------- tributação de UM lote ----------
@@ -415,11 +417,14 @@ function tributarLote(principal, bruto, dias, produto){
    válido um aporte feito no mês 11 num produto com 180 dias de carência. */
 function lotesForaDaCarencia(lotes, resgate, produto, carenciaOverride){
   var P=PRODUTOS[produto]||PRODUTOS.cdb, fora=[];
-  var car=(carenciaOverride===undefined||carenciaOverride===null)?P.carenciaDias:Number(carenciaOverride);
-  if(!(car>0)) return fora;
+  var overrideInformado=!(carenciaOverride===undefined||carenciaOverride===null||carenciaOverride==="");
+  var carDias=overrideInformado?Number(carenciaOverride):Number(P.carenciaDias||0);
+  var carMeses=overrideInformado?0:Number(P.carenciaMeses||0);
+  if(!(carDias>0)&&!(carMeses>0)) return fora;
   for(var k=0;k<lotes.length;k++){
-    var d=diasEntre(lotes[k].data, resgate);
-    if(d < car) fora.push({indice:k, mes:lotes[k].mesAporte, dias:d, carenciaDias:car});
+    var L=lotes[k], d=diasEntre(L.data,resgate);
+    var venc=carMeses>0 ? addMeses(L.data,carMeses) : new Date(L.data.getFullYear(),L.data.getMonth(),L.data.getDate()+carDias);
+    if(dInt(resgate)<dInt(venc)) fora.push({indice:k, mes:L.mesAporte, dias:d, carenciaDias:carDias, carenciaMeses:carMeses, vencimento:venc});
   }
   return fora;
 }
@@ -452,7 +457,7 @@ function custodiaTesouroTemporal(lotes, resgate, estoquePrevio, selicAA, dataBas
     var novo=0;
     for(var k=0;k<lotes.length;k++){
       var L=lotes[k];
-      if(dInt(L.data)<=di){
+      if(dInt(L.data)<di){
         var held=Math.max(di-dInt(L.data),0);
         novo+=Math.max(Number(L.valor)||0,0)*Math.pow(1+aa,held/365);
       }
@@ -488,8 +493,10 @@ function aniversariosPoupanca(dep, resgate){
 }
 function taxaPoupancaAM(selicAA, trAM){
   var tr=(trAM||0)/100;
-  if(selicAA>8.5) return 0.005+tr;
-  return (Math.pow(1+0.70*selicAA/100, 1/12)-1)+tr;   // 70% da meta Selic a.a., mensalizada, + TR
+  var adicional = selicAA>8.5 ? 0.005 : (Math.pow(1+0.70*selicAA/100, 1/12)-1);
+  /* Remuneração total = fator da TR × fator da remuneração adicional.
+     Ex.: TR 0,1732% + adicional 0,5000% => total 0,6741%, como na tabela do BCB. */
+  return (1+tr)*(1+adicional)-1;
 }
 
 /* ---------- XIRR (TIR com datas) ----------
@@ -683,8 +690,11 @@ t("LCA 10d: IR zero", lca10.ir, 0);
 var lci10=tributarLote(10000, 10100, 10, "lci");
 t("LCI 10d: IOF sim (Dec 6.306 art.32)", lci10.iof>0, true);
 t("LCI 10d: IR zero (isenta PF)", lci10.ir, 0);
-t("carência LCA = 180d", PRODUTOS.lca.carenciaDias, 180);
-t("carência LCI = 180d", PRODUTOS.lci.carenciaDias, 180);
+t("LCI padrão = 6 meses calendário", PRODUTOS.lci.carenciaMeses, 6);
+t("LCA padrão = 6 meses calendário", PRODUTOS.lca.carenciaMeses, 6);
+var carBase=new Date(2026,0,31), carRes=addMeses(carBase,6);
+t("LCI: lote inicial libera em 6 meses calendário", lotesForaDaCarencia([{data:carBase,mesAporte:0}],carRes,"lci",null).length, 0);
+t("LCI: um dia antes ainda está bloqueado", lotesForaDaCarencia([{data:carBase,mesAporte:0}],new Date(2026,6,30),"lci",null).length, 1);
 var tes=tributarLote(10000, 11500, 730, "tesouro");
 t("Tesouro 730d: IR 15%", tes.ir, 1500*0.15, 0.01);
 
@@ -715,8 +725,10 @@ t("31/01 -> primeiro rendimento em 01/03",
   aniversariosPoupanca(new Date(2026,0,31), new Date(2026,2,1)), 1);
 t("31/01 -> em 28/02 ainda 0",
   aniversariosPoupanca(new Date(2026,0,31), new Date(2026,1,28)), 0);
-t("Selic 14,25% -> 0,5% a.m. + TR", taxaPoupancaAM(14.25,0), 0.005, 1e-9);
-t("Selic 7% -> 70% mensalizada + TR", taxaPoupancaAM(7,0), Math.pow(1+0.7*0.07,1/12)-1, 1e-9);
+t("Selic 14,25% e TR 0 -> 0,5% a.m.", taxaPoupancaAM(14.25,0), 0.005, 1e-9);
+t("Poupança combina TR e adicional por fatores (BCB)", taxaPoupancaAM(14.25,0.1732)*100, 0.674066, 0.00001);
+var ad7=Math.pow(1+0.7*0.07,1/12)-1;
+t("Selic 7% -> 70% mensalizada combinada com TR", taxaPoupancaAM(7,0.10), ((1+ad7)*(1+0.001)-1), 1e-9);
 
 /* ---- retorno real e XIRR ---- */
 sec("Retorno real (data-base única) e XIRR");
@@ -844,8 +856,8 @@ if(typeof module!=="undefined") module.exports={rodarTestes,compararAmortizarInv
   PRODUTOS,tributarLote,custodiaTesouro,custodiaTesouroTemporal,fatorDiarioCDI,acumuladoCDI,dataBasePoupanca,aniversariosPoupanca,
   taxaPoupancaAM,vpl,xirr,realNaDataBase,financiamentoPrice,financiamentoSAC,tabelaAmortizacao,saldoPorVP,
   taxaImplicita,cetAnual,fatorAcumulado,mesesInclusivos,periodoPadrao12};
-/* ================= ESTADO E PERSISTÊNCIA ================= */
-var APP_VER=4;
+
+var APP_VER="4.3";
 var SGS={ selic:432, cdi:4389, ipca12:13522, ipcam:433, igpm:189, usd:1, eur:21619, tr:226 };
 var LS_KEY="indicadores_ultimo_bom_v4";
 var state={}, prov={}, dataSerie={};
@@ -858,9 +870,9 @@ function salvarIndicador(k, valor, dataSerie){
        localStorage.setItem(LS_KEY, JSON.stringify(b)); }catch(e){}
 }
 
-function fmtPct(v,c){ return (v==null||isNaN(v))?"—":Number(v).toLocaleString("pt-BR",{minimumFractionDigits:c||2,maximumFractionDigits:c||2})+"%"; }
+function fmtPct(v,c){ c=(c===undefined?2:c); return (v==null||isNaN(v))?"—":Number(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c})+"%"; }
 function fmtBRL(v){ return (v==null||isNaN(v))?"—":"R$ "+Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fmtN(v,c){ return Number(v).toLocaleString("pt-BR",{minimumFractionDigits:c||2,maximumFractionDigits:c||2}); }
+function fmtN(v,c){ c=(c===undefined?2:c); return Number(v).toLocaleString("pt-BR",{minimumFractionDigits:c,maximumFractionDigits:c}); }
 
 /* ---------- SGS com timeout ---------- */
 function sgsUrl(s,n){ return "https://api.bcb.gov.br/dados/serie/bcdata.sgs."+s+"/dados/ultimos/"+n+"?formato=json"; }
@@ -868,7 +880,7 @@ function fetchSGS(serie, n, ms){
   ms=ms||8000;
   var ctrl = (typeof AbortController!=="undefined") ? new AbortController() : null;
   var t = setTimeout(function(){ if(ctrl) ctrl.abort(); }, ms);
-  return fetch(sgsUrl(serie,n), ctrl?{signal:ctrl.signal}:{})
+  return fetch(sgsUrl(serie,n), ctrl?{signal:ctrl.signal,cache:"no-store"}:{cache:"no-store"})
     .then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
     .then(function(j){ clearTimeout(t); if(!j||!j.length) throw new Error("vazio"); return j; })
     .catch(function(e){ clearTimeout(t); throw e; });
@@ -885,6 +897,7 @@ function setCard(id, valor, sub, procedencia){
 
 /* ---------- carga ---------- */
 function loadAll(){
+  var refresh=document.getElementById("refreshBtn"); if(refresh){refresh.disabled=true;refresh.textContent="…";}
   var salvo=lerBom();
   var itens=[
     {k:"selic", s:SGS.selic, n:1, card:"c-selic", fmt:function(v){return fmtPct(v)}, lbl:"% ao ano"},
@@ -918,7 +931,7 @@ function loadAll(){
     salvarIndicador("igpmM", state.igpmM, j[j.length-1].data);
     salvarIndicador("igpm12", state.igpm12, j[j.length-1].data);
     setCard("c-igpmm", fmtPct(state.igpmM), "no mês · "+j[j.length-1].data, "viva");
-    setCard("c-igpm12", fmtPct(state.igpm12), "12 meses", "viva");
+    setCard("c-igpm12", fmtPct(state.igpm12), "12 meses até "+j[j.length-1].data, "viva");
   }).catch(function(){
     ["igpmM","igpm12"].forEach(function(k){
       var card = k==="igpmM"?"c-igpmm":"c-igpm12";
@@ -945,7 +958,8 @@ function loadAll(){
     if(offs===0 && vivos>0){ dot.className="dot ok"; txt.textContent="Dados oficiais · "+hora; }
     else if(vivos>0){ dot.className="dot warn"; txt.textContent="Parcial · alguns indicadores do último dado salvo"; }
     else { dot.className="dot err"; txt.textContent="Sem conexão com o Banco Central"; }
-  });
+    if(refresh){refresh.disabled=false;refresh.textContent="↻";}
+  }).catch(function(){ if(refresh){refresh.disabled=false;refresh.textContent="↻";} });
 }
 
 /* ================= ABAS ================= */
@@ -1006,15 +1020,32 @@ function listaParcelasComDatas(d0, primeiro, valores){
 }
 
 /* ================= INVESTIR ================= */
+(function(){
+  var prod=document.getElementById("iProduto"), car=document.getElementById("iCarencia"), hint=document.getElementById("iCarenciaHint");
+  var pctW=document.getElementById("iPctWrap"), carW=document.getElementById("iCarenciaWrap"), estW=document.getElementById("iEstoqueWrap");
+  function aplicaProdutoUI(){
+    var p=prod.value, renda=(p==="cdb"||p==="lci"||p==="lca");
+    pctW.style.display=renda?"":"none";
+    carW.style.display=renda?"":"none";
+    estW.style.display=p==="tesouro"?"":"none";
+    if(p==="cdb"){ car.value="0"; hint.textContent="CDB com liquidez diária: 0. Não confundir com o IOF dos primeiros 30 dias."; }
+    else if(p==="lci"||p==="lca"){ car.value=""; car.placeholder="vazio = 6 meses"; hint.textContent="Vazio usa 6 meses calendário, o mínimo regulatório para LCI/LCA % CDI. Se a emissão tiver prazo maior, informe os dias reais."; }
+    else { car.value="0"; }
+  }
+  prod.addEventListener("change",aplicaProdutoUI); aplicaProdutoUI();
+})();
 document.getElementById("simBtn").addEventListener("click", function(){
   limpaErro("simErr"); var res=document.getElementById("simRes"); res.classList.remove("show");
   var A=lerBR("iInicial",{padrao:0,nome:"Valor inicial",min:0}); if(!A.ok)return erro("simErr",A.erro);
   var B=lerBR("iAporte",{padrao:0,nome:"Aporte mensal",min:0}); if(!B.ok)return erro("simErr",B.erro);
   var M=lerInt("iMeses",{nome:"Prazo",min:1,max:1200}); if(!M.ok)return erro("simErr",M.erro);
   var produto=document.getElementById("iProduto").value;
-  var PC=lerTaxa("iPct",{padrao:100,nome:"% do CDI",min:0.01}); if(!PC.ok)return erro("simErr",PC.erro);
-  var E=lerBR("iEstoque",{padrao:0,nome:"Estoque anterior de Tesouro",min:0}); if(!E.ok)return erro("simErr",E.erro);
-  var CAR=lerInt("iCarencia",{padrao:PRODUTOS[produto].carenciaDias,nome:"Carência",min:0,max:10000}); if(!CAR.ok)return erro("simErr",CAR.erro);
+  var usaCDI=(produto==="cdb"||produto==="lci"||produto==="lca");
+  var PC=usaCDI?lerTaxa("iPct",{padrao:100,nome:"% do CDI",min:0.01}):{ok:true,v:100}; if(!PC.ok)return erro("simErr",PC.erro);
+  var E=produto==="tesouro"?lerBR("iEstoque",{padrao:0,nome:"Estoque anterior de Tesouro",min:0}):{ok:true,v:0}; if(!E.ok)return erro("simErr",E.erro);
+  var CAR={ok:true,v:0,vazio:false};
+  if(usaCDI){ var carRaw=document.getElementById("iCarencia").value.trim(); CAR=carRaw?lerInt("iCarencia",{nome:"Prazo/carência",min:0,max:10000}):{ok:true,v:(produto==="cdb"?0:null),vazio:true}; }
+  if(!CAR.ok)return erro("simErr",CAR.erro);
   var inicial=A.v, aporte=B.v, meses=M.v, pct=PC.v, estoque=E.v, carencia=CAR.v;
   var corrige=document.getElementById("iCorrigeAporte").checked;
   if(inicial<=0&&aporte<=0) return erro("simErr","Informe um valor inicial ou um aporte.");
@@ -1039,7 +1070,9 @@ document.getElementById("simBtn").addEventListener("click", function(){
   var resgate=addMeses(hoje,meses);
   var fora=lotesForaDaCarencia(lotes,resgate,produto,carencia);
   if(fora.length){ var qi=fora.map(function(x){return x.mes===0?"inicial":"mês "+x.mes});
-    return erro("simErr",P.nome+" exige "+carencia+" dias de carência nesta simulação e "+fora.length+" lote(s) não a cumprem ("+qi.slice(0,4).join(", ")+(qi.length>4?"…":"")+")."); }
+    var regra=carencia===null?"6 meses calendário":carencia+" dias";
+    var extra=produto==="cdb"?" Se este CDB tem liquidez diária, use 0. Os 30 dias do IOF não são carência.":" Informe o prazo/carência real desta emissão se for diferente.";
+    return erro("simErr",P.nome+" está usando "+regra+" e "+fora.length+" lote(s) ainda não podem ser resgatados na data final ("+qi.slice(0,4).join(", ")+(qi.length>4?"…":"")+")."+extra); }
   var investido=0, bruto=0, iofT=0, irT=0, liquido=0, det=[];
   lotes.forEach(function(L){
     var dias=diasEntre(L.data,resgate), fv;
@@ -1063,11 +1096,13 @@ document.getElementById("simBtn").addEventListener("click", function(){
     var fluxos=lotes.map(function(L){return {data:L.data,valor:-realNaDataBase(L.valor,L.mesAporte,infl)}});
     fluxos.push({data:resgate,valor:finalReal}); fluxos.sort(function(a,b){return a.data-b.data}); rReal=xirr(fluxos);
   }
-  var html=rline("Total investido",fmtBRL(investido))+rline("Valor bruto no resgate",fmtBRL(bruto))+
+  var carTxt=carencia===null?"6 meses calendário":carencia+" dias";
+  var premissaTaxa=(produto==="cdb"||produto==="lci"||produto==="lca")?fmtN(pct,2)+"% do CDI (CDI atual "+fmtPct(state.cdi)+")":(produto==="tesouro"?"Meta Selic atual "+fmtPct(state.selic):"Selic/TR atuais mantidas");
+  var html=rline("Premissa de taxa",premissaTaxa)+rline("Total investido",fmtBRL(investido))+rline("Valor bruto no resgate",fmtBRL(bruto))+
     (iofT>0?rline("IOF","− "+fmtBRL(iofT),"neg"):"")+(irT>0?rline("IR por lote","− "+fmtBRL(irT),"neg"):"")+
     (custodia>0?rline("Custódia B3 projetada","− "+fmtBRL(custodia),"neg"):"")+rline("<b>Valor líquido</b>","<b>"+fmtBRL(liquido)+"</b>","big")+
     (infl!=null?'<div class="note">Em poder de compra de <b>hoje</b> (IPCA '+fmtPct(infl)+' a.a.):</div>'+rline("Valor final em reais de hoje",fmtBRL(finalReal))+rline("Aportes trazidos a hoje",fmtBRL(pvAportes))+rline("<b>Ganho real</b>","<b>"+fmtBRL(ganhoReal)+"</b>",ganhoReal>=0?"pos":"neg")+(rReal!=null?rline("Retorno real anualizado (TIR datada)",fmtPct(rReal*100)):""):'<div class="warnbox">IPCA indisponível: retorno real não calculado. Os valores acima são nominais.</div>')+
-    '<div class="note">'+nota+' Taxas futuras são desconhecidas; isto é uma projeção com as taxas atuais. Carência usada: '+carencia+' dias.</div>';
+    '<div class="note">'+nota+' Taxas futuras são desconhecidas; isto é uma projeção com as taxas atuais. Prazo/carência usada: '+carTxt+'.'+(aporte>0?' Aportes mensais são considerados no fim de cada mês; o último ocorre na data final e não rende antes do resgate.':'')+'</div>';
   if(det.length>1){ html+='<div class="tblwrap"><table class="tbl"><thead><tr><th>Aporte</th><th>Dias</th><th>Valor</th><th>Resgate</th><th>IR</th></tr></thead><tbody>';
     det.slice(0,6).forEach(function(d){html+='<tr><td>'+(d.mes===0?"inicial":"mês "+d.mes)+'</td><td>'+d.dias+'</td><td>'+fmtN(d.valor)+'</td><td>'+fmtN(d.fv)+'</td><td>'+fmtN(d.ir)+'</td></tr>'});
     if(det.length>6)html+='<tr><td colspan="5">… '+(det.length-6)+' lotes restantes</td></tr>'; html+='</tbody></table></div>'; }
@@ -1096,15 +1131,16 @@ document.getElementById("finBtn").addEventListener("click", function(){
   var cet=cetAnual(financiado,cFin,cVista,{d0:d0,lista:lista});
   var datasInformadas=!!document.getElementById("fData0").value&&!!document.getElementById("fPrimeiro").value;
   var declarou=document.getElementById("fDeclara").checked;
-  var cetRotulo=(declarou&&datasInformadas)?"CET calculado — metodologia BCB":"CET estimado — metodologia BCB";
+  var cetRotulo="CET estimado — metodologia BCB";
   var html=rline("Valor financiado",fmtBRL(financiado))+
     (cFin>0?rline("Custos financiados",fmtBRL(cFin)):"")+(cVista>0?rline("Custos pagos à vista",fmtBRL(cVista)):"")+
     rline("Taxa equivalente",fmtPct(i*100,4)+" a.m. = "+fmtPct(amToAA(i))+" a.a.")+
     (sistema==="price"?rline("<b>Parcela fixa</b>","<b>"+fmtBRL(r.parcela)+"</b>","big"):rline("<b>1ª parcela</b>","<b>"+fmtBRL(r.primeira)+"</b>","big")+rline("Última parcela",fmtBRL(r.ultima)))+
     rline("Juros totais",fmtBRL(r.jurosTotal))+rline("Total pago ao banco",fmtBRL(r.totalPago))+rline("Custo total",fmtBRL(r.totalPago+entrada+cVista))+
     (cet!=null?rline("<b>"+cetRotulo+"</b>","<b>"+fmtPct(cet)+" a.a.</b>"):"")+
-    '<div class="note">Sistema '+(sistema==="price"?"PRICE":"SAC")+'. O CET usa fluxos datados e a metodologia da Resolução CMN 4.881/2020. '+
-    ((!datasInformadas||!declarou)?'<b>É estimativa</b> porque '+(!datasInformadas?'as datas reais não foram todas informadas':'' )+(!datasInformadas&&!declarou?' e ':'')+(!declarou?'não há confirmação de todos os custos':'')+'.':'Você informou datas e declarou todos os custos conhecidos.')+'</div>';
+    '<div class="note">Sistema '+(sistema==="price"?"PRICE":"SAC")+'. O CET usa a metodologia da Resolução CMN 4.881/2020, mas permanece <b>estimado</b>: '+
+    (datasInformadas?'a data de liberação e o 1º vencimento foram informados; as datas das parcelas seguintes são derivadas mês a mês pelo aplicativo.':'as datas reais não foram todas informadas e foi adotado um cronograma mensal padrão.')+
+    (declarou?' Você declarou todos os custos conhecidos.':' Não há confirmação de todos os custos do contrato.')+' As parcelas são matemáticas; o contrato pode diferir alguns centavos por arredondamentos e datas.'+'</div>';
   html+='<div class="tblwrap"><table class="tbl"><thead><tr><th>#</th><th>Parcela</th><th>Juros</th><th>Amortização</th><th>Saldo</th></tr></thead><tbody>';
   tab.forEach(function(l){html+='<tr><td>'+l.n+'</td><td>'+fmtN(l.parcela)+'</td><td>'+fmtN(l.juros)+'</td><td>'+fmtN(l.amort)+'</td><td>'+fmtN(l.saldo)+'</td></tr>'});
   html+='</tbody></table></div>';res.innerHTML=html;res.classList.add("show");
@@ -1183,7 +1219,7 @@ document.getElementById("amoBtn").addEventListener("click", function(){
     rline("Nova parcela", fmtBRL(novaParcela)+" (era "+fmtBRL(base.parcela)+")") +
     rline("Juros economizados", fmtBRL(jurosSemAmortizar-jurosB), "pos") +
     '<div class="note">Reduzir o <b>prazo</b> costuma economizar mais juros; reduzir a <b>parcela</b> alivia o caixa do mês. '+
-    'A escolha depende do seu fluxo, não só do total de juros. <b>Cálculo pressupõe PRICE.</b></div>';
+    'A escolha depende do seu fluxo, não só do total de juros. <b>Cálculo pressupõe PRICE e amortização logo após a parcela informada como paga.</b> Entre vencimentos, o banco pode incluir juros proporcionais até a data.'+'</div>';
 
   // comparação com investir
   if(state.cdi!=null){
@@ -1210,15 +1246,20 @@ document.getElementById("corBtn").addEventListener("click",function(){
   var dFim=ultimo+"/"+p[1]+"/"+p[0], url="https://api.bcb.gov.br/dados/serie/bcdata.sgs."+codigo+"/dados?formato=json&dataInicial="+dIni+"&dataFinal="+dFim;
   var btn=document.getElementById("corBtn");btn.disabled=true;btn.textContent="Consultando…";
   var ctrl=typeof AbortController!=="undefined"?new AbortController():null,t=setTimeout(function(){if(ctrl)ctrl.abort()},8000);
-  fetch(url,ctrl?{signal:ctrl.signal}:{}).then(function(r){if(!r.ok)throw new Error("http");return r.json()}).then(function(j){
-    clearTimeout(t);if(!j||!j.length)throw new Error("vazio");var vals=j.map(function(x){return parseFloat(x.valor)}),fator=fatorAcumulado(vals),corrigido=valor*fator;
-    var fJ=juros>0?Math.pow(1+juros/100,vals.length/12):1,final=corrigido*fJ,esperado=mesesInclusivos(de,ate);
+  fetch(url,ctrl?{signal:ctrl.signal,cache:"no-store"}:{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("http");return r.json()}).then(function(j){
+    clearTimeout(t);if(!j||!j.length)throw new Error("vazio");
+    var esperado=mesesInclusivos(de,ate);
+    if(j.length!==esperado) throw new Error("serie-incompleta:"+j.length+":"+esperado);
+    var vals=j.map(function(x){return Number(x.valor)}); if(vals.some(function(v){return !isFinite(v)})) throw new Error("valor-invalido");
+    var fator=fatorAcumulado(vals),corrigido=valor*fator;
+    var fJ=juros>0?Math.pow(1+juros/100,vals.length/12):1,final=corrigido*fJ,acum=(fator-1)*100;
     var html=rline("Índice",nome+" (SGS "+codigo+")")+rline("Período",de.slice(5,7)+"/"+de.slice(0,4)+" a "+ate.slice(5,7)+"/"+ate.slice(0,4)+" — pontas inclusivas")+
-      rline("Meses considerados",vals.length+(vals.length===esperado?"":" (esperado "+esperado+")"))+rline("Variação acumulada",fmtPct((fator-1)*100))+rline("Valor original",fmtBRL(valor))+rline("Corrigido pelo índice",fmtBRL(corrigido))+
-      (juros>0?rline("Juros do contrato",fmtPct(juros)+" a.a.")+rline("<b>Valor final (índice + juros)</b>","<b>"+fmtBRL(final)+"</b>","big"):rline("<b>Valor corrigido</b>","<b>"+fmtBRL(corrigido)+"</b>","big"))+
-      '<div class="note">Mês inicial e final entram no cálculo. IGP-M contratual usa a série 28655; o painel mensal continua usando a série 189.</div>';
+      rline("Meses considerados",String(vals.length))+rline("Variação acumulada",fmtPct(acum))+rline("Valor original",fmtBRL(valor))+rline("Corrigido pelo índice",fmtBRL(corrigido))+
+      (juros>0?rline("Juros do contrato",fmtPct(juros)+" a.a. (compostos no período)")+rline("<b>Valor final (índice + juros)</b>","<b>"+fmtBRL(final)+"</b>","big"):rline("<b>Valor corrigido</b>","<b>"+fmtBRL(corrigido)+"</b>","big"))+
+      (acum<0?rline("Se o contrato trava índice negativo em zero",fmtBRL(valor*fJ)):"")+
+      '<div class="note">Mês inicial e final entram no cálculo. IGP-M contratual usa a série 28655; o painel mensal continua usando a série 189. Os juros opcionais são uma simulação composta; prevalece a cláusula do seu contrato.</div>';
     res.innerHTML=html;res.classList.add("show");
-  }).catch(function(){clearTimeout(t);erro("corErr","Não foi possível obter a série do Banco Central agora.")}).finally(function(){btn.disabled=false;btn.textContent="Corrigir"});
+  }).catch(function(e){clearTimeout(t);var msg=(e&&String(e.message||e).indexOf("serie-incompleta:")===0)?"O Banco Central ainda não publicou todos os meses desse período. Ajuste a data final para o último índice disponível.":"Não foi possível obter a série completa do Banco Central agora.";erro("corErr",msg)}).finally(function(){btn.disabled=false;btn.textContent="Corrigir"});
 });
 
 /* ================= COMPARAR ================= */
@@ -1231,13 +1272,13 @@ document.getElementById("kBtn").addEventListener("click",function(){
   var LC=lerTaxa("kPctLc",{padrao:90,nome:"% CDI LCI/LCA",min:0.01});if(!LC.ok)return erro("kErr",LC.erro);
   var EST=lerBR("kEstoque",{padrao:0,nome:"Estoque Tesouro",min:0});if(!EST.ok)return erro("kErr",EST.erro);
   var CC=lerInt("kCarCdb",{padrao:0,nome:"Carência CDB",min:0,max:10000});if(!CC.ok)return erro("kErr",CC.erro);
-  var CL=lerInt("kCarLc",{padrao:180,nome:"Carência LCI/LCA",min:0,max:10000});if(!CL.ok)return erro("kErr",CL.erro);
+  var clRaw=document.getElementById("kCarLc").value.trim(), CL=clRaw?lerInt("kCarLc",{nome:"Prazo/carência LCI/LCA",min:0,max:10000}):{ok:true,v:null,vazio:true};if(!CL.ok)return erro("kErr",CL.erro);
   var inicial=VI.v,aporte=AP.v,meses=M.v,pCdb=CDB.v,pLc=LC.v,est=EST.v;if(inicial<=0&&aporte<=0)return erro("kErr","Informe valor inicial ou aporte mensal.");
   if(state.cdi==null||state.selic==null)return erro("kErr","Selic ou CDI indisponíveis agora.");
   var hoje=new Date(),resg=addMeses(hoje,meses),lotes=[];if(inicial>0)lotes.push({data:new Date(hoje),valor:inicial,mesAporte:0});for(var m=1;m<=meses;m++)if(aporte>0)lotes.push({data:addMeses(hoje,m),valor:aporte,mesAporte:m});
   var linhas=[];
   function avaliar(prod,pct,carencia){
-    var P=PRODUTOS[prod],fora=lotesForaDaCarencia(lotes,resg,prod,carencia);if(fora.length)return {prod:prod,nome:P.nome,indisponivel:true,fora:fora.length,car:carencia};
+    var P=PRODUTOS[prod],fora=lotesForaDaCarencia(lotes,resg,prod,carencia);if(fora.length)return {prod:prod,nome:P.nome,indisponivel:true,fora:fora.length,car:carencia,carTxt:carencia===null?"6 meses calendário":carencia+" dias"};
     if(prod==="poupanca"&&state.tr==null)return null;
     var investido=0,liq=0,ir=0,iof=0,bruto=0;
     lotes.forEach(function(L){var dias=diasEntre(L.data,resg),fv;
@@ -1250,9 +1291,9 @@ document.getElementById("kBtn").addEventListener("click",function(){
   }
   [["cdb",pCdb,CC.v],["lci",pLc,CL.v],["lca",pLc,CL.v],["tesouro",0,0],["poupanca",0,0]].forEach(function(x){var r=avaliar(x[0],x[1],x[2]);if(r)linhas.push(r)});
   var validos=linhas.filter(function(r){return !r.indisponivel});validos.sort(function(a,b){return b.liq-a.liq});
-  var html='<div class="tblwrap"><table class="tbl"><thead><tr><th>Produto</th><th>Líquido</th><th>Ganho</th><th>IR</th></tr></thead><tbody>';
-  validos.forEach(function(r,idx){html+='<tr><td>'+(idx===0?'&#9733; ':'')+r.nome+'</td><td>'+fmtN(r.liq)+'</td><td>'+fmtN(r.rend)+'</td><td>'+fmtN(r.ir)+'</td></tr>'});
-  linhas.filter(function(r){return r.indisponivel}).forEach(function(r){html+='<tr><td>'+r.nome+'</td><td colspan="3">'+r.fora+' lote(s) fora da carência de '+r.car+' dias</td></tr>'});html+='</tbody></table></div>';
+  var html='<div class="tblwrap"><table class="tbl"><thead><tr><th>Produto</th><th>Líquido</th><th>Ganho</th><th>Trib./taxas</th></tr></thead><tbody>';
+  validos.forEach(function(r,idx){var custos=r.ir+r.iof+r.cust;html+='<tr><td>'+(idx===0?'&#9733; ':'')+r.nome+'</td><td>'+fmtBRL(r.liq)+'</td><td>'+fmtBRL(r.rend)+'</td><td>'+fmtBRL(custos)+'</td></tr>'});
+  linhas.filter(function(r){return r.indisponivel}).forEach(function(r){html+='<tr><td>'+r.nome+'</td><td colspan="3">'+r.fora+' lote(s) ainda bloqueados ('+r.carTxt+')</td></tr>'});html+='</tbody></table></div>';
   if(validos.length)html+='<div class="okbox">Melhor líquido no período: <b>'+validos[0].nome+'</b> com '+fmtBRL(validos[0].liq)+'.</div>';
   html+='<div class="note">Comparação preserva aporte mensal. IR/IOF são por lote; Tesouro usa custódia temporal; poupança respeita aniversários. Projeção com taxas atuais, não previsão.</div>';
   res.innerHTML=html;res.classList.add("show");
