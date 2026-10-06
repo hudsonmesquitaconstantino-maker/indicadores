@@ -1,8 +1,8 @@
-/* Service Worker — Indicadores Guimas v4.3
+/* Service Worker — Indicadores Guimas v5.0
    Isolado: gerencia apenas caches com o prefixo deste app.
    O app é praticamente autocontido; somente a navegação/index.html usa fallback offline. */
 const PREFIX = "guimas-indicadores-shell-v";
-const CACHE  = PREFIX + "4-3";
+const CACHE  = PREFIX + "5-0";
 const LEGACY = "indicadores-guimas-v1";
 const INDEX  = new URL("./index.html", self.registration.scope).href;
 
