@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Indicadores">
-<meta name="theme-color" content="#0D1220">
+<meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="./1B75639A-2443-4BCA-823E-B6808B815AD1.png">
 <title>Indicadores &amp; Simulador — Guimas</title>
 <style>:root{
@@ -1064,7 +1064,7 @@ if(typeof module!=="undefined") module.exports={rodarTestes,compararAmortizarInv
   taxaImplicita,cetAnual,fatorAcumulado,mesesInclusivos,periodoPadrao12,
   parseDataBR,normSerie,ultimaMudanca,valorEm,variacaoPct,minMax,recordeDesde,tendencia,acumulado12,focusExtrair,caminhoMensal,fatorCaminhoCDI,fatorCaminhoAnual,proximoCopom,ultimoCopom,fmtDataBR};
 
-var APP_VER="5.1";
+var APP_VER="5.2";
 var SGS={ selic:432, cdi:4389, selicOver:1178, ipca12:13522, ipcam:433, igpm:189, usd:1, eur:21619, tr:226 };
 var LS_KEY="indicadores_series_v5";
 var state={}, prov={}, dataSerie={}, SER={}, FOCUS={};
@@ -1825,5 +1825,22 @@ if("serviceWorker" in navigator){
  aplicar();
 })();
 </script>
+<style id="modoEscuro">
+/* ===================== MODO ESCURO (padrão iPhone) — Hudson 03/11/2026 =====================
+   Camada única no fim do app: só cor, fundo e sombra. Não mexe em dado, função nem layout.
+   Paleta igual em todos os apps: fundo preto, cartões #1C1C1E, campos #2C2C2E, texto branco/cinza, âmbar, verde, vermelho do iOS. */
+:root:is(#escA,html):not(.gsplPre),:root:is(#escA,html):not(.gsplPre) body:is(#escB,body){background:#000!important;color:#F5F5F7}
+:root:is(#escA,html) body:is(#escB,body) input,:root:is(#escA,html) body:is(#escB,body) select,:root:is(#escA,html) body:is(#escB,body) textarea{color:#F5F5F7!important;border-color:#3A3A3C!important;caret-color:#F0A02E}
+:root:is(#escA,html) body:is(#escB,body) input::placeholder,:root:is(#escA,html) body:is(#escB,body) textarea::placeholder{color:#6E6E76!important}
+:root:is(#escA,html) body:is(#escB,body) input[type=date]::-webkit-calendar-picker-indicator,:root:is(#escA,html) body:is(#escB,body) input[type=month]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.7}
+/* placa continua placa de verdade: branca, letra preta, faixa azul */
+:root:is(#escA,html) body:is(#escB,body) .plate{background:#F2F2F2!important;border-color:#1b1d22!important}
+:root:is(#escA,html) body:is(#escB,body) .plate b,:root:is(#escA,html) body:is(#escB,body) .plate .num,:root:is(#escA,html) body:is(#escB,body) .plate input{color:#111!important;background:transparent!important}
+:root:is(#escA,html) body:is(#escB,body) .plate i,:root:is(#escA,html) body:is(#escB,body) .plate .top{background:#174A8C!important;color:#fff!important}
+:root:is(#escA,html) body:is(#escB,body) .pl{background:#F2F2F2!important;color:#111!important;border-color:#1b1d22!important}
+
+:root{color-scheme:dark;--bg:#000000;--panel:#1C1C1E;--panel2:#2C2C2E;--line:#2C2C2E;--ink:#F5F5F7;--ink-soft:#A1A1A8;--amber:#F0A02E;--amber-dim:#C98420;--green:#30D158;--red:#FF6B5E}
+
+</style>
 </body>
 </html>

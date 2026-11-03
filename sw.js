@@ -2,7 +2,7 @@
    Isolado: gerencia apenas caches com o prefixo deste app.
    O app é praticamente autocontido; somente a navegação/index.html usa fallback offline. */
 const PREFIX = "guimas-indicadores-shell-v";
-const CACHE  = PREFIX + "5-1";
+const CACHE  = PREFIX + "5-2";
 const LEGACY = "indicadores-guimas-v1";
 const INDEX  = new URL("./index.html", self.registration.scope).href;
 
