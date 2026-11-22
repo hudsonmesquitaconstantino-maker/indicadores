@@ -184,7 +184,7 @@ html.teclado .detbox{max-height:calc(var(--vvh,88vh) - 10px)}
 
 <header>
   <div class="wrap hdr">
-    <div class="brand"><b>Indicadores</b> Guimas <span style="font-size:11px;color:var(--ink-soft);font-weight:500">v5.1</span></div>
+    <div class="brand"><b>Indicadores</b> Guimas <span id="verNum" style="font-size:11px;color:var(--ink-soft);font-weight:500"></span></div>
     <button id="refreshBtn" class="ghost" type="button" title="Atualizar" aria-label="Atualizar indicadores">&#8635;</button>
   </div>
 </header>
@@ -1064,7 +1064,7 @@ if(typeof module!=="undefined") module.exports={rodarTestes,compararAmortizarInv
   taxaImplicita,cetAnual,fatorAcumulado,mesesInclusivos,periodoPadrao12,
   parseDataBR,normSerie,ultimaMudanca,valorEm,variacaoPct,minMax,recordeDesde,tendencia,acumulado12,focusExtrair,caminhoMensal,fatorCaminhoCDI,fatorCaminhoAnual,proximoCopom,ultimoCopom,fmtDataBR};
 
-var APP_VER="5.2";
+var APP_VER="5.3";(function(){function _v(){var e=document.getElementById("verNum");if(e)e.textContent="v"+APP_VER}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",_v);else _v()})();
 var SGS={ selic:432, cdi:4389, selicOver:1178, ipca12:13522, ipcam:433, igpm:189, usd:1, eur:21619, tr:226 };
 var LS_KEY="indicadores_series_v5";
 var state={}, prov={}, dataSerie={}, SER={}, FOCUS={};
